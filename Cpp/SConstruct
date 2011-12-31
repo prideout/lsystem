@@ -1,0 +1,30 @@
+# Clean:
+#  > scons -c
+#
+# Debug configuration:
+#  > scons debug=1
+#
+# Parallel build:
+#  > scons -j 4
+
+import sys
+import os
+
+source = Split("""
+  Ribbon.cpp
+  LSystem.cpp
+  pugixml.cpp
+  diagnostic.cpp
+""")
+
+env = Environment(ENV = os.environ)
+
+env.Program('Ribbon', source)
+env.Append(CPPPATH = '.')
+
+if env['CC'] == 'gcc':
+    env.Append(CPPDEFINES=['inline=__inline'])
+
+if ARGUMENTS.get('debug', 0):
+     env.Append(CCFLAGS = '-g')
+
