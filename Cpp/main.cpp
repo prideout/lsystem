@@ -1,9 +1,9 @@
 #include <iostream>
-#include <LSystem.hpp>
+#include <lsystem.hpp>
 
 int main()
 {
-    LSystem::XformList ribbon;
-    ribbon = LSystem::Evaluate("Ribbon.xml");
+    lsystem::XformList ribbon;
+    ribbon = lsystem::Evaluate("Ribbon.xml");
     std::cout << "Success!\n";
 }

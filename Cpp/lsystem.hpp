@@ -1,7 +1,7 @@
 #include <vmath.hpp>
 #include <list>
 
-class LSystem
+class lsystem
 {
 public:
     typedef std::list<vmath::Matrix4> XformList;

@@ -2,9 +2,9 @@
 #include <pugixml.hpp>
 #include <diagnostic.hpp>
 
-namespace diag = Diagnostic;
+namespace diag = diagnostic;
 
-LSystem::XformList LSystem::Evaluate(const char* filename, int seed)
+lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
 {
     pugi::xml_document doc;
     diag::Print("Reading %s...\n", filename);

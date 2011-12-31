@@ -7,7 +7,7 @@
 
 #define countof(A) (sizeof(A) / sizeof(A[0]))
 
-void Diagnostic::Print(const char* pStr, ...)
+void diagnostic::Print(const char* pStr, ...)
 {
     va_list a;
     va_start(a, pStr);
@@ -25,14 +25,14 @@ static void _FatalError(const char* pStr, va_list a)
     exit(1);
 }
 
-void Diagnostic::Fatal(const char* pStr, ...)
+void diagnostic::Fatal(const char* pStr, ...)
 {
     va_list a;
     va_start(a, pStr);
     _FatalError(pStr, a);
 }
 
-void Diagnostic::Check(bool condition, ...)
+void diagnostic::Check(bool condition, ...)
 {
     va_list a;
     const char* pStr;

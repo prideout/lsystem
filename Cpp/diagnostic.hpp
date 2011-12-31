@@ -1,4 +1,4 @@
-namespace Diagnostic
+namespace diagnostic
 {
     void Print(const char* pStr, ...);
     void Fatal(const char* pStr, ...);
