@@ -11,8 +11,8 @@ import sys
 import os
 
 source = Split("""
-  Ribbon.cpp
-  LSystem.cpp
+  main.cpp
+  lsystem.cpp
   pugixml.cpp
   diagnostic.cpp
 """)
@@ -21,9 +21,6 @@ env = Environment(ENV = os.environ)
 
 env.Program('Ribbon', source)
 env.Append(CPPPATH = '.')
-
-if env['CC'] == 'gcc':
-    env.Append(CPPDEFINES=['inline=__inline'])
 
 if ARGUMENTS.get('debug', 0):
      env.Append(CCFLAGS = '-g')
