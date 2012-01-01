@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <signal.h>
-#include <wchar.h>
 
 #define countof(A) (sizeof(A) / sizeof(A[0]))
 
@@ -11,36 +9,55 @@ void diagnostic::Print(const char* pStr, ...)
 {
     va_list a;
     va_start(a, pStr);
-
-    char msg[1024] = {0};
-    vsnprintf(msg, countof(msg), pStr, a);
+    int bytes = 1 + vsnprintf(0, 0, pStr, a);
+    char* msg = (char*) malloc(bytes);
+    va_start(a, pStr);
+    vsnprintf(msg, bytes, pStr, a);
     fputs(msg, stderr);
-}
-
-static void _FatalError(const char* pStr, va_list a)
-{
-    char msg[1024] = {0};
-    vsnprintf(msg, countof(msg), pStr, a);
-    fputs(msg, stderr);
-    exit(1);
+    free(msg);
 }
 
 void diagnostic::Fatal(const char* pStr, ...)
 {
     va_list a;
     va_start(a, pStr);
-    _FatalError(pStr, a);
+    int bytes = 1 + vsnprintf(0, 0, pStr, a);
+    char* msg = (char*) malloc(bytes);
+    va_start(a, pStr);
+    vsnprintf(msg, bytes, pStr, a);
+    fputs(msg, stderr);
+    free(msg);
+    exit(1);
 }
 
 void diagnostic::Check(bool condition, ...)
 {
-    va_list a;
-    const char* pStr;
-
     if (condition)
         return;
 
+    va_list a;
+    va_start(a, condition);
+    const char* pStr = va_arg(a, const char*);
+    int bytes = 1 + vsnprintf(0, 0, pStr, a);
+    char* msg = (char*) malloc(bytes);
     va_start(a, condition);
     pStr = va_arg(a, const char*);
-    _FatalError(pStr, a);
+    vsnprintf(msg, bytes, pStr, a);
+    fputs(msg, stderr);
+    free(msg);
+    exit(1);
+}
+
+class _UnreachableException : public std::exception
+{   
+    virtual const char* what() const throw() {
+        return "Internal error: unreachable code";
+    }
+};
+
+std::exception& diagnostic::Unreachable()
+{
+    static _UnreachableException e;
+    Print("Internal error: unreachable code.\n");
+    return e;
 }
