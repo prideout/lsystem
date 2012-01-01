@@ -5,6 +5,7 @@
 
 namespace diag = diagnostic;
 using std::string;
+using namespace vmath;
 
 /// Safe utility function for sprintf-style formatting
 /// (light alternative to std::ostringstream and boost::format)
@@ -57,10 +58,20 @@ static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name)
     throw diag::Unreachable();
 }
 
+struct StackEntry {
+    pugi::xml_node Node;
+    int Depth;
+    vmath::Matrix4 Transform;
+};
+
+typedef std::list<StackEntry> Stack;
+
 lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
 {
+    // Seed the random number generator.
     srand(seed);
     
+    // Parse the XML document
     pugi::xml_document doc;
     diag::Print("Reading %s...\n", filename);
     pugi::xml_parse_result result = doc.load_file(filename);
@@ -68,8 +79,21 @@ lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
     diag::Check(result, "Unable to read XML file %s: %s\n", filename, result.description());
     
     diag::Print("Evaluating L-System...\n");
-    _PickRule(doc, "entry");
-
+    
+    // Create a small stack for tracking L-System transforms
+    Stack stack; {
+        pugi::xml_node entry = _PickRule(doc, "entry");
+        StackEntry start = { entry, 0, Matrix4::identity() };
+        stack.push_back(start);
+    }
+    
+    // Extract a maximum recursion depth from the XML
+    int max_depth = doc.attribute("max_depth").as_int();
+    while (!stack.empty()) {
+        StackEntry entry = stack.back();
+        stack.pop_back();
+    }
+    
     XformList retval;
     return retval;
 }
