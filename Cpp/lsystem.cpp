@@ -22,6 +22,11 @@ static string _Format(const char* pStr, ...)
     return retval;
 }
 
+static Matrix4 _ParseTransform(const std::string& xformString)
+{
+    return Matrix4::identity();
+}
+
 /// Add default values to any missing attributes
 static void _AssignDefaults(pugi::xml_document& doc)
 {
@@ -37,6 +42,10 @@ static void _AssignDefaults(pugi::xml_document& doc)
             pugi::xml_attribute xforms = op.attribute("transforms");
             if (!xforms) {
                 op.append_attribute("transforms").set_value("");
+            }
+            pugi::xml_attribute count = op.attribute("count");
+            if (!count) {
+                op.append_attribute("count").set_value("1");
             }
         }
     }
@@ -61,7 +70,9 @@ static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name)
         if (n < weight) {
             return pRule->node();
         }
+        n -= weight;
     }
+    
     throw diag::Unreachable();
 }
 
@@ -73,7 +84,7 @@ struct StackEntry {
 
 typedef std::list<StackEntry> Stack;
 
-lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
+lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
 {
     // Seed the random number generator.
     srand(seed);
@@ -99,7 +110,8 @@ lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
     diag::Print("Max depth is %d\n", max_depth);
 
     // Build the list of transforms    
-    XformList retval;
+    Curve retval;
+    size_t progressCount = 0;
     while (!stack.empty()) {
         StackEntry entry = stack.back();
         stack.pop_back();
@@ -116,13 +128,13 @@ lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
         }
     
         // Mark the end of the ribbon due to local depth constaint
-        Matrix4 xform = entry.Transform;
+        Matrix4 matrix = entry.Transform;
         if (entry.Depth >= local_max) {
             // Switch to a different rule is one is specified
             if (entry.Node.attribute("successor")) {
                 const char* successor = entry.Node.attribute("successor").value();
                 pugi::xml_node rule = _PickRule(doc, successor);
-                StackEntry newEntry = {rule, 0, xform};
+                StackEntry newEntry = {rule, 0, matrix};
                 stack.push_back(newEntry);
             }
             retval.push_back(0);
@@ -133,35 +145,37 @@ lsystem::XformList lsystem::Evaluate(const char* filename, int seed)
         pugi::xml_node op = entry.Node.first_child();
         for (; op; op = op.next_sibling()) {
             string xformString = op.attribute("transforms").value();
-            std::cout << "Transforms string: " << xformString.c_str() << std::endl;
+            Matrix4 xform = _ParseTransform(xformString);
+            int count = op.attribute("count").as_int();
+            while (count--) {
+                matrix *= xform;
+                string tag = op.name();
+                if (tag == "call") {
+                    const char* rule = op.attribute("rule").value();
+                    pugi::xml_node newRule = _PickRule(doc, rule);
+                    StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
+                    stack.push_back(newEntry);
+                } else if (tag == "instance") {
+                    CurvePoint* cp = new CurvePoint;
+                    cp->P = Point3((matrix * Vector4(0,0,0,1)).getXYZ());
+                    cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
+                    retval.push_back(cp);
+                } else {
+                    op.print(std::cout);
+                    diag::Print("Unrecognized operation: '%s'\n", tag.c_str());
+                }
+            }
+        }
+        
+        // Give users a crude progress indicator
+        size_t s = retval.size();
+        if (s > progressCount + 10000) {
+            diag::Print("%d curve segments so far...\n", s);
+            progressCount = s;
         }
     }
     
-/*    
-
-        for statement in rule:
-            xform = parse_xform(statement.get("transforms", ""))
-            count = int(statement.get("count", 1))
-            for n in xrange(count):
-                matrix *= xform
-                if statement.tag == "call":
-                    rule = pick_rule(tree, statement.get("rule"))
-                    cloned_matrix = matrix.copy()
-                    stack.append((rule, depth + 1, cloned_matrix))
-                elif statement.tag == "instance":
-                    name = statement.get("shape")
-                    if name == "curve":
-                        P = Point3(0, 0, 0)
-                        N = Vector3(0, 0, 1)
-                        P = matrix * P
-                        N = matrix.upperLeft() * N
-                        shapes.append((P, N))
-                    else:
-                        shape = (name, matrix)
-                        shapes.append(shape)
-                else:
-                    print "malformed xml"
-                    quit()
-*/
+    diag::Print("%d total curve segments.\n", retval.size());
+    
     return retval;
 }
