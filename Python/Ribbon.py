@@ -3,7 +3,7 @@
 ThreadCount = 4
 ShadingRate = 8 # Bigger is faster
 ImageFormat = (1024,640,1)
-PixelSamples = (1,1)
+PixelSamples = (4,4)
 OccSamples = 32
 FrameDuration = 1.0 / 24.0
 ShutterDuration = 1.0 / 30.0
@@ -146,7 +146,9 @@ def DrawScene(ri, time):
         ri.Surface("plastic")
 
     tree = open(RulesFile).read()
-    shapes = LSystem.Evaluate(tree, seed = 29)
+    lsys = LSystem.LSystem(tree)
+    shapes = lsys.evaluate(seed = 29)
+    
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
     ri.Translate(0, 0, -0.55)
