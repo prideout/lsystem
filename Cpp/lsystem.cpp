@@ -140,7 +140,8 @@ struct StackEntry {
 
 typedef std::list<StackEntry> Stack;
 
-lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
+/// Parse given XML file, evaluate rules, populate member curve
+void lsystem::Evaluate(const char* filename, int seed)
 {
     // Seed the random number generator.
     srand(seed);
@@ -173,7 +174,6 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
     threads.reserve(maxThreads);
 
     // Build the list of transforms    
-    Curve retval;
     size_t progressCount = 0;
     size_t curveLength = 0;
     while (!stack.empty()) {
@@ -187,7 +187,7 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
         
         // Mark the end of the ribbon due to global depth constraint
         if (stack.size() >= max_depth) {
-            retval.push_back(0);
+            _curve.push_back(0);
             continue;
         }
     
@@ -201,7 +201,7 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
                 StackEntry newEntry = {rule, 0, matrix};
                 stack.push_back(newEntry);
             }
-            retval.push_back(0);
+            _curve.push_back(0);
             continue;
         }
         
@@ -223,7 +223,7 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
                     CurvePoint* cp = new CurvePoint;
                     cp->P = Point3((matrix * Vector4(0,0,0,1)).getXYZ());
                     cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
-                    retval.push_back(cp);
+                    _curve.push_back(cp);
                     
                     // Give users a crude progress indicator by maintaining a count
                     // Note that size() on std::list can have linear complexity (!)
@@ -241,6 +241,12 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
     }
     
     diag::Print("%d total curve segments.\n", curveLength);
-    
-    return retval;
 }
+
+lsystem::~lsystem()
+{
+    for (Curve::iterator i = _curve.begin(); i != _curve.end(); ++i) {
+        delete *i;
+    }
+}
+

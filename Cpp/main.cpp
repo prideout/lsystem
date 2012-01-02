@@ -3,7 +3,7 @@
 
 int main()
 {
-    lsystem::Curve ribbon;
-    ribbon = lsystem::Evaluate("Ribbon.xml");
+    lsystem ribbon;
+    ribbon.Evaluate("Ribbon.xml");
     std::cout << "Success!\n";
 }
