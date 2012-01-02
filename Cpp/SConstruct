@@ -15,6 +15,7 @@ source = Split("""
   lsystem.cpp
   pugixml.cpp
   diagnostic.cpp
+  tinythread.cpp
 """)
 
 env = Environment(ENV = os.environ)

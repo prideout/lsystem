@@ -1,11 +1,15 @@
+#include <vector>
+#include <sstream>
 #include <lsystem.hpp>
 #include <pugixml.hpp>
 #include <diagnostic.hpp>
 #include <iostream>
+#include <tinythread.hpp>
 
 namespace diag = diagnostic;
 using std::string;
 using namespace vmath;
+using namespace tthread;
 
 /// Safe utility function for sprintf-style formatting
 /// (light alternative to std::ostringstream and boost::format)
@@ -22,9 +26,61 @@ static string _Format(const char* pStr, ...)
     return retval;
 }
 
+/// Parse a string in the xform language and generate a 4x4 matrix.
+/// Examples:
+///   "rx -2 tx 0.1 sa 0.996"
+///   "s 0.55 2.0 1.25"
 static Matrix4 _ParseTransform(const std::string& xformString)
 {
-    return Matrix4::identity();
+    std::istringstream s(xformString);
+    Matrix4 xform = Matrix4::identity();
+    while (s) {
+        std::string token;
+        s >> std::skipws >> token;
+        float x, y, z;
+        if (token == "s") {
+            s >> x >> y >> z;
+            xform *= Matrix4::scale(Vector3(x, y, z));
+        } else if (token == "sa") {
+            s >> x;
+            xform *= Matrix4::scale(Vector3(x, x, x));
+        } else if (token == "t") {
+            s >> x >> y >> z;
+            xform *= Matrix4::translation(Vector3(x, y, z));
+        } else if (token == "tx") {
+            s >> x;
+            xform *= Matrix4::translation(Vector3(x, 0, 0));
+        } else if (token == "ty") {
+            s >> y;
+            xform *= Matrix4::translation(Vector3(0, y, 0));
+        } else if (token == "tz") {
+            s >> z;
+            xform *= Matrix4::translation(Vector3(0, 0, z));
+        } else if (token == "rx") {
+            s >> x;
+            xform *= Matrix4::rotationX(x);
+        } else if (token == "ry") {
+            s >> y;
+            xform *= Matrix4::rotationY(y);
+        } else if (token == "rz") {
+            s >> z;
+            xform *= Matrix4::rotationZ(z);
+        } else if (token == "sx") {
+            s >> x;
+            xform *= Matrix4::scale(Vector3(x, 1, 1));
+        } else if (token == "sy") {
+            s >> y;
+            xform *= Matrix4::scale(Vector3(1, y, 1));
+        } else if (token == "sz") {
+            s >> z;
+            xform *= Matrix4::scale(Vector3(1, 1, z));
+        } else if (token == "") {
+            // harmless.
+        } else {
+            diag::Fatal("Unrecognized xform token: %s\n", token.c_str());
+        }
+    }
+    return xform;
 }
 
 /// Add default values to any missing attributes
@@ -108,6 +164,13 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
     // Extract a maximum recursion depth from the XML
     int max_depth = doc.first_child().attribute("max_depth").as_int();
     diag::Print("Max depth is %d\n", max_depth);
+
+    // TODO
+    // Tip for Mac developers: open "Activity Monitor", then right click its dock icon.
+    // Select "Show CPU Usage" and keep it in the doc.
+    int maxThreads = thread::hardware_concurrency();
+    std::vector<thread *> threads;
+    threads.reserve(maxThreads);
 
     // Build the list of transforms    
     Curve retval;
