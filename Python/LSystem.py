@@ -29,8 +29,8 @@ class LSystem:
         return shapes
         
     def _evaluate(self, entry):
-        shapes = []
         stack = [entry]
+        shapes = []
         while len(stack) > 0:
     
             if len(shapes) > self._progressCount + 1000:
@@ -68,8 +68,7 @@ class LSystem:
                         if True or self._availableThreads <= 0:
                             stack.append(entry)
                         else:
-                           self._availableThreads = self._availableThreads - 1
-                           # TODO
+                            self._spawn(entry)
                            
                     elif statement.tag == "instance":
                         name = statement.get("shape")
@@ -89,6 +88,16 @@ class LSystem:
         print "\nGenerated %d shapes." % len(shapes)
         return shapes
         # end of _evaluate
+        
+#    def _spawn(self, entry):
+#        with LOCK:
+#            self._availableThreads = self._availableThreads - 1
+#            insertionPoint = len(self._shapes)
+#            
+#        def closure():
+#            shapes = self._evaluate(entry)
+            
+           
         
 def _pickRule(tree, name):
 
@@ -114,7 +123,12 @@ def _pickRule(tree, name):
         n = n - weight
     return item
 
+_xformCache = {}
+
 def _parseXform(xform_string):
+    if xform_string in _xformCache:
+        return _xformCache[xform_string]
+        
     matrix = Matrix4.new_identity()
     tokens = xform_string.split(' ')
     t = 0
@@ -172,6 +186,7 @@ def _parseXform(xform_string):
             print "unrecognized transformation: '%s' at position %d in '%s'" % (command, t, xform_string)
             quit()
 
+    _xformCache[xform_string] = matrix
     return matrix
 
 def _radians(d):
