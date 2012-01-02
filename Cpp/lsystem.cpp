@@ -112,6 +112,7 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
     // Build the list of transforms    
     Curve retval;
     size_t progressCount = 0;
+    size_t curveLength = 0;
     while (!stack.empty()) {
         StackEntry entry = stack.back();
         stack.pop_back();
@@ -160,22 +161,23 @@ lsystem::Curve lsystem::Evaluate(const char* filename, int seed)
                     cp->P = Point3((matrix * Vector4(0,0,0,1)).getXYZ());
                     cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
                     retval.push_back(cp);
+                    
+                    // Give users a crude progress indicator by maintaining a count
+                    // Note that size() on std::list can have linear complexity (!)
+                    if (++curveLength >= progressCount + 10000) {
+                        diag::Print("%d curve segments so far...\n", curveLength);
+                        progressCount = curveLength;
+                    }
+
                 } else {
                     op.print(std::cout);
                     diag::Print("Unrecognized operation: '%s'\n", tag.c_str());
                 }
             }
         }
-        
-        // Give users a crude progress indicator
-        size_t s = retval.size();
-        if (s > progressCount + 10000) {
-            diag::Print("%d curve segments so far...\n", s);
-            progressCount = s;
-        }
     }
     
-    diag::Print("%d total curve segments.\n", retval.size());
+    diag::Print("%d total curve segments.\n", curveLength);
     
     return retval;
 }
