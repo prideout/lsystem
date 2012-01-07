@@ -4,6 +4,7 @@
 #include <pugixml.hpp>
 #include <diagnostic.hpp>
 #include <iostream>
+#include <map>
 #include <tinythread.hpp>
 
 namespace diag = diagnostic;
@@ -30,8 +31,15 @@ static string _Format(const char* pStr, ...)
 /// Examples:
 ///   "rx -2 tx 0.1 sa 0.996"
 ///   "s 0.55 2.0 1.25"
-static Matrix4 _ParseTransform(const std::string& xformString)
+static Matrix4 _ParseTransform(const string& xformString)
 {
+    typedef std::map<string, Matrix4> Cache;
+    static Cache cache;
+    Cache::iterator i = cache.find(xformString);
+    if (i != cache.end()) {
+        return i->second;
+    }
+    
     std::istringstream s(xformString);
     Matrix4 xform = Matrix4::identity();
     while (s) {
@@ -80,6 +88,7 @@ static Matrix4 _ParseTransform(const std::string& xformString)
             diag::Fatal("Unrecognized xform token: %s\n", token.c_str());
         }
     }
+    cache[xformString] = xform;
     return xform;
 }
 
