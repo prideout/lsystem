@@ -18,10 +18,25 @@ source = Split("""
   tinythread.cpp
 """)
 
+libs = Split("""
+     libprman
+""")
+
 env = Environment(ENV = os.environ)
 
-env.Program('Ribbon', source)
-env.Append(CPPPATH = '.')
+if "RMANTREE" not in os.environ:
+   print >> sys.stderr, "RMANTREE not found; is prman properly installed?"
+   env.Exit(-1)
+
+rmantree = os.environ["RMANTREE"]
+rmaninc = os.path.join(rmantree, "include")
+rmanlib = os.path.join(rmantree, "lib")
+
+env.Program('Ribbon', source, LIBS = libs, LINKFLAGS = '-Xlinker -rpath ' + rmanlib)
+env.Append(CPPPATH = ['.', rmaninc])
+env.Append(LIBPATH = rmanlib)
+env.Append(RPATH = rmanlib)
+#env.Append(SHLINKFLAGS='-Xlinker -rpath')
 
 if ARGUMENTS.get('debug', 0):
      env.Append(CCFLAGS = '-g')
