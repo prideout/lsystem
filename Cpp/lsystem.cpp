@@ -3,6 +3,9 @@
 #include <lsystem.hpp>
 #include <pugixml.hpp>
 #include <diagnostic.hpp>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <map>
 #include <tinythread.hpp>
