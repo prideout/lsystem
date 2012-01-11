@@ -11,13 +11,24 @@ void _DrawWorld()
     RiDeclare("samples", "float");
     RiDeclare("coordsys", "string");
     RiDeclare("hitgroup", "string");
-    /*
-    RiAttribute("cull", "int backfacing", RI_FALSE);
-    RiAttribute("cull", "int hidden", RI_FALSE);
-    RiAttribute("dice", "int rasterorient", RI_FALSE);
-    RiAttribute("visibility", "int diffuse", RI_TRUE);
-    RiAttribute("visibility", "int specular", RI_TRUE);
-    */
+    
+    {
+        RtToken tokens[2] = { "int backfacing", "int hidden" };
+        RtInt bools[2] = { RI_FALSE, RI_FALSE };
+        RtPointer values[2] = {&bools[0], &bools[1]};
+        RiAttributeV("cull", 2, tokens, values);
+    }
+    {
+        RtToken tokens[2] = { "int diffuse", "int specular" };
+        RtInt bools[2] = { RI_TRUE, RI_TRUE };
+        RtPointer values[2] = {bools, bools + 1};
+        RiAttributeV("visibility", 2, tokens, values);
+    }
+    {
+        RtInt rasterorient = RI_FALSE;
+        RiAttribute("dice", "int rasterorient", &rasterorient, RI_NULL);
+    }
+
     {
       RtToken tokens[1];
       RtPointer values[1];
