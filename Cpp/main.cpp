@@ -1,8 +1,20 @@
 #include <iostream>
 #include <lsystem.hpp>
 #include <ri.h>
+#include <Ric.h>
+#include <string>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
+const bool HaveLicense = false;
+using namespace std;
+
+static void _SetLabel(string label, string groups = "")
+{
+    RiAttribute(RI_IDENTIFIER, RI_NAME, label.c_str(), RI_NULL);
+    if (groups.size() > 0) {
+        //self.Attribute("grouping",{"membership":groups})
+    }
+}
 
 void _DrawWorld()
 {
@@ -11,7 +23,6 @@ void _DrawWorld()
     RiDeclare("samples", "float");
     RiDeclare("coordsys", "string");
     RiDeclare("hitgroup", "string");
-    
     {
         RtToken tokens[2] = { "int backfacing", "int hidden" };
         RtInt bools[2] = { RI_FALSE, RI_FALSE };
@@ -28,7 +39,6 @@ void _DrawWorld()
         RtInt rasterorient = RI_FALSE;
         RiAttribute("dice", "int rasterorient", &rasterorient, RI_NULL);
     }
-
     {
       RtToken tokens[1];
       RtPointer values[1];
@@ -38,15 +48,31 @@ void _DrawWorld()
       RiSurfaceV("ComputeOcclusion", 1, tokens, values);
     }
 
+    _SetLabel("Floor");
     RiTransformBegin();
     RiRotate(90, 1, 0, 0);
     RiDisk(-0.7, 300, 360, RI_NULL);
     RiTransformEnd();
+    
     RiWorldEnd();
 }
 
 void _ReportProgress()
 {
+    int previous = 0;
+    int progress = 0;
+    while (progress < 100) {
+        RicProcessCallbacks();
+        progress = RicGetProgress();
+        //if progress == 100 or progress < previous:
+        //    break
+        if (progress != previous) {
+            printf("\r%3d%%\n", progress);
+            //print "\r%04d - %s%%" % (ReportProgress.counter, progress),
+            previous = progress;
+            //time.sleep(0.1)
+        }
+    }
 }
 
 int main()
@@ -56,7 +82,8 @@ int main()
     std::cout << "Success!\n";
 
     RtContextHandle ri = RiGetContext();
-    RiBegin(0); // "launch:prman? -t -ctrl $ctrlin $ctrlout");
+    char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout";
+    RiBegin(HaveLicense ? launch : 0);
 
     {
       RtBoolean endofframe = RI_TRUE;
