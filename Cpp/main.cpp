@@ -7,11 +7,11 @@
 void _DrawWorld()
 {
     RiWorldBegin();
-    /*
     RiDeclare("displaychannels", "string");
     RiDeclare("samples", "float");
     RiDeclare("coordsys", "string");
     RiDeclare("hitgroup", "string");
+    /*
     RiAttribute("cull", "int backfacing", RI_FALSE);
     RiAttribute("cull", "int hidden", RI_FALSE);
     RiAttribute("dice", "int rasterorient", RI_FALSE);
@@ -46,10 +46,21 @@ int main()
 
     RtContextHandle ri = RiGetContext();
     RiBegin(0); // "launch:prman? -t -ctrl $ctrlin $ctrlout");
-    //RiOption("statistics", "endofframe", 1, RI_NULL);
-    //    RiOption("statistics", "xmlfilename", "stats.xml");
+
+    {
+      RtBoolean endofframe = RI_TRUE;
+      const char* xmlfilename = "stats.xml";
+      RtToken tokens[2];
+      RtPointer values[2];
+      tokens[0] = "endofframe";
+      values[0] = (RtPointer) &endofframe;
+      tokens[1] = "xmlfilename";
+      values[1] = (RtPointer) &xmlfilename;
+      RiOptionV("statistics", 2, tokens, values);
+    }
+
     RiDisplay("grasshopper", "framebuffer", "rgba", RI_NULL);
-    //RiDisplayChannel("float _occlusion");
+    RiDisplayChannel("float _occlusion", RI_NULL);
     RiShadingRate(8);
     RiPixelSamples(4, 4);
     float fov = 30.0f;
