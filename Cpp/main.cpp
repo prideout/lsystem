@@ -1,18 +1,21 @@
 #include <iostream>
+#include <unistd.h>
 #include <lsystem.hpp>
 #include <ri.h>
 #include <Ric.h>
 #include <string>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
-const bool HaveLicense = false;
+const bool HaveLicense = true;
 using namespace std;
 
 static void _SetLabel(string label, string groups = "")
 {
-    RiAttribute(RI_IDENTIFIER, RI_NAME, label.c_str(), RI_NULL);
+    const char* pLabel = label.c_str();
+    RiAttribute(RI_IDENTIFIER, RI_NAME, &pLabel, RI_NULL);
     if (groups.size() > 0) {
-        //self.Attribute("grouping",{"membership":groups})
+        const char* pGroups = groups.c_str();
+        RiAttribute("grouping", RI_GRP_MEMBERSHIP, &pGroups, RI_NULL);
     }
 }
 
@@ -53,7 +56,7 @@ void _DrawWorld()
     RiRotate(90, 1, 0, 0);
     RiDisk(-0.7, 300, 360, RI_NULL);
     RiTransformEnd();
-    
+        
     RiWorldEnd();
 }
 
@@ -64,13 +67,13 @@ void _ReportProgress()
     while (progress < 100) {
         RicProcessCallbacks();
         progress = RicGetProgress();
-        //if progress == 100 or progress < previous:
-        //    break
+        if (progress >= 100 || progress < previous)
+            break;
         if (progress != previous) {
             printf("\r%3d%%\n", progress);
             //print "\r%04d - %s%%" % (ReportProgress.counter, progress),
             previous = progress;
-            //time.sleep(0.1)
+            sleep(10);
         }
     }
 }
@@ -86,7 +89,7 @@ int main()
     RiBegin(HaveLicense ? launch : 0);
 
     {
-      RtBoolean endofframe = RI_TRUE;
+      RtInt endofframe = RI_TRUE;
       const char* xmlfilename = "stats.xml";
       RtToken tokens[2];
       RtPointer values[2];
