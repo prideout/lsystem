@@ -8,7 +8,6 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
 const bool HaveLicense = true;
 using namespace std;
-
 static void _SetLabel(string label, string groups = "")
 {
     const char* pLabel = label.c_str();
