@@ -1,4 +1,7 @@
 #include <exception>
+#include <string>
+
+std::string FormatString(const char* pStr, ...);
 
 namespace diagnostic
 {

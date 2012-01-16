@@ -15,21 +15,6 @@ using std::string;
 using namespace vmath;
 using namespace tthread;
 
-/// Safe utility function for sprintf-style formatting
-/// (light alternative to std::ostringstream and boost::format)
-static string _Format(const char* pStr, ...)
-{
-    va_list a;
-    va_start(a, pStr);
-    int bytes = 1 + vsnprintf(0, 0, pStr, a);
-    char* msg = (char*) malloc(bytes);
-    va_start(a, pStr);
-    vsnprintf(msg, bytes, pStr, a);
-    string retval(msg);
-    free(msg);
-    return retval;
-}
-
 /// Parse a string in the xform language and generate a 4x4 matrix.
 /// Examples:
 ///   "rx -2 tx 0.1 sa 0.996"
@@ -122,7 +107,7 @@ static void _AssignDefaults(pugi::xml_document& doc)
 /// Pick a rule with the given name at random, respecting weights
 static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name)
 {
-    string path = _Format("/rules/rule[@name='%s']", name);
+    string path = FormatString("/rules/rule[@name='%s']", name);
     pugi::xpath_node_set rules = doc.select_nodes(path.c_str());
     pugi::xpath_node_set::const_iterator pRule = rules.begin();
     int sum = 0;
@@ -165,7 +150,7 @@ void lsystem::Evaluate(const char* filename, int seed)
     _AssignDefaults(doc);
     diag::Check(result, "Unable to read XML file %s: %s\n", filename, result.description());
     
-    diag::Print("Evaluating L-System...\n");
+    diag::Print("Evaluating rules...\n");
     
     // Create a small stack for tracking L-System transforms
     Stack stack; {

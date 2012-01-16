@@ -1,13 +1,19 @@
 #include <iostream>
-#include <unistd.h>
+#include <stdlib.h>
+#include <tinythread.hpp>
 #include <lsystem.hpp>
+#include <diagnostic.hpp>
 #include <ri.h>
 #include <Ric.h>
 #include <string>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
 const bool HaveLicense = true;
+
+using namespace tthread;
 using namespace std;
+namespace diag = diagnostic;
+
 static void _SetLabel(string label, string groups = "")
 {
     const char* pLabel = label.c_str();
@@ -70,18 +76,44 @@ void _ReportProgress()
             break;
         if (progress != previous) {
             printf("\r%3d%%\n", progress);
-            //print "\r%04d - %s%%" % (ReportProgress.counter, progress),
             previous = progress;
-            sleep(10);
+            this_thread::sleep_for(chrono::milliseconds(200));
         }
     }
 }
 
+void _CompileShader(const char* basename)
+{
+    std::string cmd = FormatString("shader %s.sl", basename);
+    if (system(cmd.c_str()) > 0) {
+        diag::Fatal("Failed to compile RSL file %s\n");
+    }
+}
+
+// https://wiki.archlinux.org/index.php/Color_Bash_Prompt#List_of_colors_for_prompt_and_Bash
+const char* ANSI_RED = "\e[1;31m";
+const char* ANSI_RESET = "\e[0m";
+
 int main()
 {
+    puts(ANSI_RED);
+    diag::Print("Evaluating L-System...\n");
+    puts(ANSI_RESET);
+
     lsystem ribbon;
     ribbon.Evaluate("Ribbon.xml");
     std::cout << "Success!\n";
+
+    puts(ANSI_RED);
+    diag::Print("Compiling shaders...\n");
+    puts(ANSI_RESET);
+
+    _CompileShader("Vignette");
+    _CompileShader("ComputeOcclusion");
+    
+    puts(ANSI_RED);
+    diag::Print("Rendering...\n");
+    puts(ANSI_RESET);
 
     RtContextHandle ri = RiGetContext();
     char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout";

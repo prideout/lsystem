@@ -4,6 +4,21 @@
 #include <stdarg.h>
 
 #define countof(A) (sizeof(A) / sizeof(A[0]))
+    
+/// Safe utility function for sprintf-style formatting
+/// (light alternative to std::ostringstream and boost::format)
+std::string FormatString(const char* pStr, ...)
+{
+    va_list a;
+    va_start(a, pStr);
+    int bytes = 1 + vsnprintf(0, 0, pStr, a);
+    char* msg = (char*) malloc(bytes);
+    va_start(a, pStr);
+    vsnprintf(msg, bytes, pStr, a);
+    std::string retval(msg);
+    free(msg);
+    return retval;
+}
 
 void diagnostic::Print(const char* pStr, ...)
 {
