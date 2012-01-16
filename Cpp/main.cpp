@@ -10,10 +10,11 @@
 #include "ru.h"
 
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
-const bool HaveLicense = false;
+const bool HaveLicense = true;
 
 using namespace tthread;
 using namespace std;
+using namespace vmath;
 namespace diag = diagnostic;
 
 static void _SetLabel(string label, string groups = "")
@@ -26,11 +27,46 @@ static void _SetLabel(string label, string groups = "")
 
 static void _DrawCurves(const lsystem& ribbon)
 {
-    std::vector<float> points(5 * 3);
-    std::vector<float> normals(5 * 3);
-    RtInt ncurves = 2;
-    RtInt nvertices[] = {3, 2};
-    RiCurves("linear", ncurves, &nvertices[0],
+    std::vector<float> points;
+    std::vector<float> normals;
+    std::vector<RtInt> vertsPerCurve;
+    
+    lsystem::Curve::const_iterator c = ribbon.GetCurve().begin();
+    for (RtInt count = 0;; ++c) {
+        if (c == ribbon.GetCurve().end() || !*c) {
+            if (count == 1) {
+                points.pop_back();
+                normals.pop_back();
+            } else if (count > 1) {
+                vertsPerCurve.push_back(count);
+            }
+            count = 0;
+            if (c == ribbon.GetCurve().end()) {
+                break;
+            }
+            continue;
+        }
+        Point3 P = (*c)->P;
+        Vector3 N = (*c)->N;
+        points.push_back(P.getX());
+        points.push_back(P.getY());
+        points.push_back(P.getZ());
+        normals.push_back(N.getX());
+        normals.push_back(N.getY());
+        normals.push_back(N.getZ());
+        ++count;
+    }
+
+    RtInt total = 0;
+    std::vector<RtInt>::const_iterator i = vertsPerCurve.begin();
+    for (; i != vertsPerCurve.end(); ++i) {
+        total += *i;
+    }
+    diag::Check(total == points.size() / 3, "Incorrect curve topology: %d total verts, %d points\n",
+        total, points.size() / 3);
+
+    RtInt ncurves = RtInt(vertsPerCurve.size());
+    RiCurves("linear", ncurves, &vertsPerCurve[0],
         "nonperiodic",
         RI_P, &points[0],
         RI_N, &normals[0],
