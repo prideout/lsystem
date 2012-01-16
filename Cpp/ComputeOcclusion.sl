@@ -26,7 +26,7 @@ class ComputeOcclusion(
                        "_occlusion", occ);
 
     color c = (em + Ka*ambient() + Kd*diffuse(Nf)) +
-                        specularcolor * Ks * specular(Nf, V, roughness);
+                        specularcolor * Ks * specular(Nf, normalize(V), roughness);
 
     Ci = (1 - occ) * Cs * c * Os;
 

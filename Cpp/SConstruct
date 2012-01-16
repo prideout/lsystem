@@ -20,7 +20,6 @@ source = Split("""
 
 libs = Split("""
      libprman
-     ncurses
 """)
 
 env = Environment(ENV = os.environ)

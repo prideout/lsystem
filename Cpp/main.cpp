@@ -6,6 +6,7 @@
 #include <ri.h>
 #include <Ric.h>
 #include <string>
+#include <vector>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
 const bool HaveLicense = true;
@@ -24,7 +25,20 @@ static void _SetLabel(string label, string groups = "")
     }
 }
 
-void _DrawWorld()
+static void _DrawCurves(const lsystem& ribbon)
+{
+    std::vector<float> points(5 * 3);
+    std::vector<float> normals(5 * 3);
+    RtInt ncurves = 2;
+    RtInt nvertices[] = {3, 2};
+    RiCurves("linear", ncurves, &nvertices[0],
+        "nonperiodic",
+        RI_P, &points[0],
+        RI_N, &normals[0],
+        RI_NULL);
+}
+
+static void _DrawWorld(const lsystem& ribbon)
 {
     RiWorldBegin();
     RiDeclare("displaychannels", "string");
@@ -61,7 +75,22 @@ void _DrawWorld()
     RiRotate(90, 1, 0, 0);
     RiDisk(-0.7, 300, 360, RI_NULL);
     RiTransformEnd();
-        
+    
+    _SetLabel("Sculpture");
+    {
+      RtToken tokens[1];
+      RtPointer values[1];
+      RtColor em = {0.25, 0.25, 0.25};
+      tokens[0] = "color em";
+      values[0] = (RtPointer) em;
+      RiSurfaceV("ComputeOcclusion", 1, tokens, values);
+    }
+    RiTransformBegin();
+    RiRotate(90, 1, 0, 0);
+    RiTranslate(0, 0, -0.55);
+    _DrawCurves(ribbon);
+    RiTransformEnd();
+            
     RiWorldEnd();
 }
 
@@ -131,7 +160,7 @@ int main()
     RiRotate(-20, 1, 0, 0);
     RiRotate(180, 1, 0, 0);
     RiImager("Vignette", RI_NULL);
-    _DrawWorld();
+    _DrawWorld(ribbon);
     _ReportProgress();
     RiEnd();
 }
