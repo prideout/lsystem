@@ -1,15 +1,16 @@
 #include <iostream>
 #include <stdlib.h>
-#include <tinythread.hpp>
-#include <lsystem.hpp>
-#include <diagnostic.hpp>
-#include <ri.h>
 #include <Ric.h>
 #include <string>
 #include <vector>
 
+#include "tinythread.hpp"
+#include "lsystem.hpp"
+#include "diagnostic.hpp"
+#include "ru.h"
+
 #pragma GCC diagnostic ignored "-Wwrite-strings" 
-const bool HaveLicense = true;
+const bool HaveLicense = false;
 
 using namespace tthread;
 using namespace std;
@@ -17,11 +18,9 @@ namespace diag = diagnostic;
 
 static void _SetLabel(string label, string groups = "")
 {
-    const char* pLabel = label.c_str();
-    RiAttribute(RI_IDENTIFIER, RI_NAME, &pLabel, RI_NULL);
+    RuAttributet(RI_IDENTIFIER, RI_NAME, label);
     if (groups.size() > 0) {
-        const char* pGroups = groups.c_str();
-        RiAttribute("grouping", RI_GRP_MEMBERSHIP, &pGroups, RI_NULL);
+        RuAttributet("grouping", RI_GRP_MEMBERSHIP, groups);
     }
 }
 
@@ -45,46 +44,21 @@ static void _DrawWorld(const lsystem& ribbon)
     RiDeclare("samples", "float");
     RiDeclare("coordsys", "string");
     RiDeclare("hitgroup", "string");
-    {
-        RtToken tokens[2] = { "int backfacing", "int hidden" };
-        RtInt bools[2] = { RI_FALSE, RI_FALSE };
-        RtPointer values[2] = {&bools[0], &bools[1]};
-        RiAttributeV("cull", 2, tokens, values);
-    }
-    {
-        RtToken tokens[2] = { "int diffuse", "int specular" };
-        RtInt bools[2] = { RI_TRUE, RI_TRUE };
-        RtPointer values[2] = {bools, bools + 1};
-        RiAttributeV("visibility", 2, tokens, values);
-    }
-    {
-        RtInt rasterorient = RI_FALSE;
-        RiAttribute("dice", "int rasterorient", &rasterorient, RI_NULL);
-    }
-    {
-      RtToken tokens[1];
-      RtPointer values[1];
-      RtColor em = {0.0/255.0,165.0/255.0,211.0/255.0};
-      tokens[0] = "color em";
-      values[0] = (RtPointer) em;
-      RiSurfaceV("ComputeOcclusion", 1, tokens, values);
-    }
+    RuAttributei("cull", "backfacing", RI_FALSE);
+    RuAttributei("cull", "hidden", RI_FALSE);
+    RuAttributei("visibility", "diffuse", RI_TRUE);
+    RuAttributei("visibility", "specular", RI_TRUE);
+    RuAttributei("dice", "rasterorient", RI_FALSE);
 
     _SetLabel("Floor");
+    RuSurfaceci("ComputeOcclusion", "em", 0, 165, 211);
     RiTransformBegin();
     RiRotate(90, 1, 0, 0);
     RiDisk(-0.7, 300, 360, RI_NULL);
     RiTransformEnd();
     
     _SetLabel("Sculpture");
-    {
-      RtToken tokens[1];
-      RtPointer values[1];
-      RtColor em = {0.25, 0.25, 0.25};
-      tokens[0] = "color em";
-      values[0] = (RtPointer) em;
-      RiSurfaceV("ComputeOcclusion", 1, tokens, values);
-    }
+    RuSurfacecf("ComputeOcclusion", "em", 0.25f, 0.25f, 0.25f);
     RiTransformBegin();
     RiRotate(90, 1, 0, 0);
     RiTranslate(0, 0, -0.55);
@@ -137,19 +111,8 @@ int main()
     RtContextHandle ri = RiGetContext();
     char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout";
     RiBegin(HaveLicense ? launch : 0);
-
-    {
-      RtInt endofframe = RI_TRUE;
-      const char* xmlfilename = "stats.xml";
-      RtToken tokens[2];
-      RtPointer values[2];
-      tokens[0] = "endofframe";
-      values[0] = (RtPointer) &endofframe;
-      tokens[1] = "xmlfilename";
-      values[1] = (RtPointer) &xmlfilename;
-      RiOptionV("statistics", 2, tokens, values);
-    }
-
+    RuOptioni("statistics", "endofframe", RI_TRUE);
+    RuOptiont("statistics", "xmlfilename", "stats.xml");
     RiDisplay("grasshopper", "framebuffer", "rgba", RI_NULL);
     RiDisplayChannel("float _occlusion", RI_NULL);
     RiShadingRate(8);
