@@ -90,30 +90,20 @@ void _CompileShader(const char* basename)
     }
 }
 
-// https://wiki.archlinux.org/index.php/Color_Bash_Prompt#List_of_colors_for_prompt_and_Bash
-const char* ANSI_RED = "\e[1;31m";
-const char* ANSI_RESET = "\e[0m";
-
 int main()
 {
-    puts(ANSI_RED);
-    diag::Print("Evaluating L-System...\n");
-    puts(ANSI_RESET);
+    diag::PrintColor(diag::RED, "Evaluating L-System...");
 
     lsystem ribbon;
     ribbon.Evaluate("Ribbon.xml");
     std::cout << "Success!\n";
 
-    puts(ANSI_RED);
-    diag::Print("Compiling shaders...\n");
-    puts(ANSI_RESET);
+    diag::PrintColor(diag::RED, "Compiling shaders...");
 
     _CompileShader("Vignette");
     _CompileShader("ComputeOcclusion");
     
-    puts(ANSI_RED);
-    diag::Print("Rendering...\n");
-    puts(ANSI_RESET);
+    diag::PrintColor(diag::RED, "Rendering...");
 
     RtContextHandle ri = RiGetContext();
     char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout";

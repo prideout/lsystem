@@ -28,7 +28,21 @@ void diagnostic::Print(const char* pStr, ...)
     char* msg = (char*) malloc(bytes);
     va_start(a, pStr);
     vsnprintf(msg, bytes, pStr, a);
-    fputs(msg, stderr);
+    fputs(msg, stdout);
+    free(msg);
+}
+
+void diagnostic::PrintColor(const char* prefix, const char* pStr, ...)
+{
+    va_list a;
+    va_start(a, pStr);
+    int bytes = 1 + vsnprintf(0, 0, pStr, a);
+    char* msg = (char*) malloc(bytes);
+    va_start(a, pStr);
+    vsnprintf(msg, bytes, pStr, a);
+    fputs(prefix, stdout);
+    fputs(msg, stdout);
+    puts(ANSI_RESET);
     free(msg);
 }
 
