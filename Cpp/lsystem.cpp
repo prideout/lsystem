@@ -15,6 +15,11 @@ using std::string;
 using namespace vmath;
 using namespace tthread;
 
+static float _radians(float degrees)
+{
+    return degrees * 3.1415926535f / 180.0f;
+}
+
 /// Parse a string in the xform language and generate a 4x4 matrix.
 /// Examples:
 ///   "rx -2 tx 0.1 sa 0.996"
@@ -54,13 +59,13 @@ static Matrix4 _ParseTransform(const string& xformString)
             xform *= Matrix4::translation(Vector3(0, 0, z));
         } else if (token == "rx") {
             s >> x;
-            xform *= Matrix4::rotationX(x);
+            xform *= Matrix4::rotationX(_radians(x));
         } else if (token == "ry") {
             s >> y;
-            xform *= Matrix4::rotationY(y);
+            xform *= Matrix4::rotationY(_radians(y));
         } else if (token == "rz") {
             s >> z;
-            xform *= Matrix4::rotationZ(z);
+            xform *= Matrix4::rotationZ(_radians(z));
         } else if (token == "sx") {
             s >> x;
             xform *= Matrix4::scale(Vector3(x, 1, 1));
@@ -218,7 +223,8 @@ void lsystem::Evaluate(const char* filename, int seed)
                     stack.push_back(newEntry);
                 } else if (tag == "instance") {
                     CurvePoint* cp = new CurvePoint;
-                    cp->P = Point3((matrix * Vector4(0,0,0,1)).getXYZ());
+                    Vector4 v = matrix * Vector4(0,0,0,1);
+                    cp->P = Point3(v.getXYZ());
                     cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
                     _curve.push_back(cp);
                     

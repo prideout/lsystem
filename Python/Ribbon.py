@@ -113,8 +113,8 @@ def DrawScene(ri, time):
     ri.Translate(-1, -1, 20)
     ri.Rotate(-20, 1, 0, 0)
     ri.Rotate(180, 1, 0, 0)
-    curve = [1, 1, 0.8, 0.1, 0.9, 0.2, 1, 1, 1, 1]
-    ri.Camera("world", {"float[10] shutteropening": curve})
+#    curve = [1, 1, 0.8, 0.1, 0.9, 0.2, 1, 1, 1, 1]
+#    ri.Camera("world", {"float[10] shutteropening": curve})
     ri.Imager("Vignette")
     ri.WorldBegin()
     ri.Declare("displaychannels", "string")
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     if SingleFrame:
         ShutterDuration = 0
-        ri.Begin("launch:prman? -ctrl $ctrlin $ctrlout")
+        ri.Begin("launch:prman? -ctrl $ctrlin $ctrlout -capture debug.rib")
         DrawScene(ri, 0)
         ReportProgress()
         ri.End()

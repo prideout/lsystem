@@ -3,7 +3,7 @@ class ComputeOcclusion(
                      displaychannels = "",
                      coordsys = "";
                      color em = (1,0,1);
-                     float samples = 64;        
+                     float samples = 256;
                      float Ka = 1;
                      float Kd =.5;
                      float Ks =.5;
@@ -25,8 +25,8 @@ class ComputeOcclusion(
                        "coordsystem", coordsys,
                        "_occlusion", occ);
 
-    color c = (em + Ka*ambient() + Kd*diffuse(Nf)) +
-                        specularcolor * Ks * specular(Nf, normalize(V), roughness);
+    color c = em; /* (em + Ka*ambient() + Kd*diffuse(Nf)) +
+                        specularcolor * Ks * specular(Nf, normalize(V), roughness); */
 
     Ci = (1 - occ) * Cs * c * Os;
 

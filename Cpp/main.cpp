@@ -37,6 +37,10 @@ static void _DrawCurves(const lsystem& ribbon)
             if (count == 1) {
                 points.pop_back();
                 normals.pop_back();
+                points.pop_back();
+                normals.pop_back();
+                points.pop_back();
+                normals.pop_back();
             } else if (count > 1) {
                 vertsPerCurve.push_back(count);
             }
@@ -66,11 +70,20 @@ static void _DrawCurves(const lsystem& ribbon)
         total, points.size() / 3);
 
     RtInt ncurves = RtInt(vertsPerCurve.size());
-    RiCurves("linear", ncurves, &vertsPerCurve[0],
-        "nonperiodic",
-        RI_P, &points[0],
-        RI_N, &normals[0],
-        RI_NULL);
+    float curveWidth = 0.15f;
+    i = vertsPerCurve.begin();
+    total = 0;
+    ncurves = 1;
+    for (; i != vertsPerCurve.end(); ++i) {
+        RtInt nverts = *i;
+        RiCurves("linear", ncurves, &nverts,
+            "nonperiodic",
+            RI_P, &points[total * 3],
+            RI_N, &normals[total * 3],
+            "constantwidth", &curveWidth,
+            RI_NULL);
+        total += *i;
+    }
 }
 
 static void _DrawWorld(const lsystem& ribbon)
@@ -94,7 +107,7 @@ static void _DrawWorld(const lsystem& ribbon)
     RiTransformEnd();
     
     _SetLabel("Sculpture");
-    RuSurfacecf("ComputeOcclusion", "em", 0.25f, 0.25f, 0.25f);
+    RuSurfacecf("ComputeOcclusion", "em", 1.0f);
     RiTransformBegin();
     RiRotate(90, 1, 0, 0);
     RiTranslate(0, 0, -0.55);
@@ -145,10 +158,11 @@ int main()
     diag::PrintColor(diag::RED, "Rendering...");
 
     RtContextHandle ri = RiGetContext();
-    char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout";
+    char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib";
     RiBegin(HaveLicense ? launch : 0);
     RuOptioni("statistics", "endofframe", RI_TRUE);
     RuOptiont("statistics", "xmlfilename", "stats.xml");
+    RiFormat(1024, 640, 1.0f);
     RiDisplay("grasshopper", "framebuffer", "rgba", RI_NULL);
     RiDisplayChannel("float _occlusion", RI_NULL);
     RiShadingRate(8);

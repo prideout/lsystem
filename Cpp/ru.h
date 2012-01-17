@@ -28,6 +28,14 @@
     } \
     \
     inline void \
+    Ru##Func##cf(const char* token, const char* param, RtFloat l) \
+    { \
+        std::string s = std::string("color ") + param; \
+        RtColor c = {l, l, l}; \
+        Ri##Func(const_cast<char*>(token), s.c_str(), &c, RI_NULL); \
+    } \
+    \
+    inline void \
     Ru##Func##ci(const char* token, const char* param, unsigned char r, unsigned char g, unsigned char b) \
     { \
         std::string s = std::string("color ") + param; \
