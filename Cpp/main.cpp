@@ -93,21 +93,30 @@ static void _DrawWorld(const lsystem& ribbon)
     RiDeclare("samples", "float");
     RiDeclare("coordsys", "string");
     RiDeclare("hitgroup", "string");
+    RiDeclare("em", "color");
     RuAttributei("cull", "backfacing", RI_FALSE);
     RuAttributei("cull", "hidden", RI_FALSE);
     RuAttributei("visibility", "diffuse", RI_TRUE);
     RuAttributei("visibility", "specular", RI_TRUE);
     RuAttributei("dice", "rasterorient", RI_FALSE);
 
+    RuMap args;
+    args["displaychannels"] = "_occlusion";
+    args["samples"] = 128.0f;
+    args["filename"] = "";
+    args["hitgroup"] = "";
+
     _SetLabel("Floor");
-    RuSurfaceci("ComputeOcclusion", "em", 0, 165, 211);
+    args["em"] = RuColor::FromBytes(0, 165, 211);
+    RuSurface("ComputeOcclusion", args);
     RiTransformBegin();
     RiRotate(90, 1, 0, 0);
     RiDisk(-0.7, 300, 360, RI_NULL);
     RiTransformEnd();
     
     _SetLabel("Sculpture");
-    RuSurfacecf("ComputeOcclusion", "em", 1.0f);
+    args["em"] = RuColor(1.0f);
+    RuSurface("ComputeOcclusion", args);
     RiTransformBegin();
     RiRotate(90, 1, 0, 0);
     RiTranslate(0, 0, -0.55);

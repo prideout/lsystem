@@ -1,5 +1,40 @@
 #include <string>
 #include <ri.h>
+#include <any.hpp>
+#include <map>
+#include <diagnostic.hpp>
+
+typedef std::map<std::string, cdiggins::any> RuMap;
+
+struct RuColor {
+    RuColor(float r, float g, float b) : r(r), g(g), b(b) {}
+    static RuColor FromBytes(unsigned char r, unsigned char g, unsigned char b)
+    {
+        return RuColor(r/255.0f, g/255.0f, b/255.0f);
+    }
+    RuColor(float l) : r(l), g(l), b(l) {}
+    float r, g, b;
+};
+
+inline void RuSurface(const char* shader, RuMap& args)
+{
+    std::vector<RtToken> tokens(args.size());
+    std::vector<RtPointer> params(args.size());
+    RuMap::iterator a = args.begin();
+    for (int i = 0; a != args.end(); ++a, ++i) {
+        tokens[i] = const_cast<char*>(a->first.c_str());
+        if (a->second.compatible(1.0f)) {
+            params[i] = &(a->second.cast<float>());
+        } else if (a->second.compatible("foo")) {
+            params[i] = &(a->second.cast<const char*>());
+        } else if (a->second.compatible(RuColor(0.0f))) {
+            params[i] = &(a->second.cast<RuColor>());
+        } else {
+            diagnostic::Fatal("Unknown type of %s\n", tokens[i]);
+        }
+    }
+    RiSurfaceV(const_cast<char*>(shader), args.size(), &tokens[0], &params[0]);
+}
 
 #define RU_PROTOTYPE(Func) \
     \

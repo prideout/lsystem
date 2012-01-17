@@ -3,7 +3,7 @@ class ComputeOcclusion(
                      displaychannels = "",
                      coordsys = "";
                      color em = (1,0,1);
-                     float samples = 256;
+                     float samples = 128;
                      float Ka = 1;
                      float Kd =.5;
                      float Ks =.5;
