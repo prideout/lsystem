@@ -71,19 +71,12 @@ static void _DrawCurves(const lsystem& ribbon)
 
     RtInt ncurves = RtInt(vertsPerCurve.size());
     float curveWidth = 0.15f;
-    i = vertsPerCurve.begin();
-    total = 0;
-    ncurves = 1;
-    for (; i != vertsPerCurve.end(); ++i) {
-        RtInt nverts = *i;
-        RiCurves("linear", ncurves, &nverts,
-            "nonperiodic",
-            RI_P, &points[total * 3],
-            RI_N, &normals[total * 3],
-            "constantwidth", &curveWidth,
-            RI_NULL);
-        total += *i;
-    }
+    RiCurves("linear", ncurves, &vertsPerCurve[0],
+        "nonperiodic",
+        RI_P, &points[0],
+        RI_N, &normals[0],
+        "constantwidth", &curveWidth,
+        RI_NULL);
 }
 
 static void _DrawWorld(const lsystem& ribbon)
