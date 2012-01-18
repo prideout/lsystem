@@ -1,0 +1,4 @@
+version 3.04
+Display "grasshopper" "multires" "rgba" 
+EditWorldBegin "Good.rib" "string rerenderer" ["raytrace"]
+EditWorldEnd
