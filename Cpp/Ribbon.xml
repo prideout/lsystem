@@ -1,4 +1,4 @@
-<rules max_depth="20">
+<rules max_depth="3000">
     <rule name="entry">
         <call count="72" transforms="rz 10" rule="hbox"/>
     </rule>
