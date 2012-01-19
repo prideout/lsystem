@@ -1,5 +1,6 @@
 #include <vmath.hpp>
 #include <pugixml.hpp>
+#include <tinythread.hpp>
 #include <list>
 
 class lsystem
@@ -45,5 +46,13 @@ private:
     int _curveLength;
     int _maxDepth;
     int _maxThreads;
+    
+    // TODO combine into a semaphore primitive?
+    int _threadsComplete;
+    int _threadsCompute;
+    tthread::mutex _mutexComplete;
+    tthread::mutex _mutexCompute;
+    tthread::condition_variable _condComplete;
+    tthread::condition_variable _condCompute;
 };
 

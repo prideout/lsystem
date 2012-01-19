@@ -14,6 +14,8 @@ using std::string;
 using namespace vmath;
 using namespace tthread;
 
+const bool EnableThreading = true;
+
 static float _radians(float degrees)
 {
     return degrees * 3.1415926535f / 180.0f;
@@ -141,6 +143,14 @@ void _ProcessRule(void* arg)
 
 void lsystem::_ProcessRule(const StackEntry& entry, Curve* result)
 {
+    {
+        lock_guard<mutex> guard(_mutexCompute);
+        while (_threadsCompute >= _maxThreads) {
+            _condCompute.wait(_mutexCompute);
+        }
+        ++_threadsCompute;
+    }
+
     Stack stack;
     stack.push_back(entry);
 
@@ -210,6 +220,13 @@ void lsystem::_ProcessRule(const StackEntry& entry, Curve* result)
             }
         }
     }
+    
+    lock_guard<mutex> guard1(_mutexCompute);
+    lock_guard<mutex> guard2(_mutexComplete);
+    _threadsCompute--;
+    _threadsComplete++;
+    _condCompute.notify_all();
+    _condComplete.notify_all();
 }
 
 /// Parse given XML file, evaluate rules, populate member curve
@@ -236,6 +253,8 @@ void lsystem::Evaluate(const char* filename, int seed)
 
     // Tip for Mac developers: open "Activity Monitor", then right click its dock icon.
     // Select "Show CPU Usage" and keep it in the doc.
+    _threadsComplete = 0;
+    _threadsCompute = 0;
     _maxThreads = thread::hardware_concurrency();
     std::vector<thread *> threads;
     threads.reserve(_maxThreads);
@@ -244,7 +263,8 @@ void lsystem::Evaluate(const char* filename, int seed)
     pugi::xml_node op = entry.Node.first_child();
     int count = op.attribute("count").as_int();
     string tag = op.name();
-    if (count > 1 && tag == "call" && !op.next_sibling()) {
+
+    if (EnableThreading && count > 1 && tag == "call" && !op.next_sibling()) {
         string xformString = op.attribute("transforms").value();
         Matrix4 xform = _ParseTransform(xformString);
         const char* rule = op.attribute("rule").value();
@@ -252,6 +272,7 @@ void lsystem::Evaluate(const char* filename, int seed)
         std::vector<ThreadInfo> curves(count); // TODO remove this by deriving a new class from tthread::thread
         std::vector<ThreadInfo>::iterator pCurve = curves.begin();
         Matrix4 matrix = entry.Transform;
+        
         while (count--) {
             matrix *= xform;
             ThreadInfo& curve = *pCurve++;
@@ -259,17 +280,21 @@ void lsystem::Evaluate(const char* filename, int seed)
             StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
             curve.Entry = newEntry;
             curve.Self = this;
-//            threads.push_back(new thread(::_ProcessRule, &curve));
+            threads.push_back(new thread(::_ProcessRule, &curve));
         }
+        
+        lock_guard<mutex> guard(_mutexComplete);
+        while (_threadsComplete < threads.size()) {
+            _condComplete.wait(_mutexComplete);
+        }
+        
         for (pCurve = curves.begin(); pCurve != curves.end(); ++pCurve) {
             _curve.splice(_curve.begin(), pCurve->Result);
         }
-
+        // TODO delete all threads
     } else {
         this->_ProcessRule(entry, &_curve);
     }
-
-    this->_ProcessRule(entry, &_curve); // TODO remove
     
     diag::Print("%d total curve segments.\n", _curveLength);
 }
