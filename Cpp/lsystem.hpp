@@ -1,4 +1,5 @@
 #include <vmath.hpp>
+#include <pugixml.hpp>
 #include <list>
 
 class lsystem
@@ -21,6 +22,28 @@ public:
     ~lsystem();
     
 private:
-    Curve _curve;    
+
+    struct StackEntry {
+        pugi::xml_node Node;
+        int Depth;
+        vmath::Matrix4 Transform;
+    };
+
+    typedef std::list<lsystem::StackEntry> Stack;
+
+    struct ThreadInfo {
+        StackEntry Entry;
+        Curve Result;
+        lsystem* Self;
+    };
+    
+    friend void _ProcessRule(void* arg);
+    void _ProcessRule(const StackEntry& entry, Curve* result);
+
+    pugi::xml_document _doc;
+    Curve _curve;
+    int _curveLength;
+    int _maxDepth;
+    int _maxThreads;
 };
 
