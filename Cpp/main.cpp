@@ -158,10 +158,12 @@ _InitCamera()
 }
 
 int
-main()
+main(int argc, char** argv)
 {
-    diag::PrintColor(diag::RED, "Evaluating L-System...");
-    lsystem ribbon;
+    bool isThreading = (argc == 1);
+    diag::PrintColor(diag::RED, "Evaluating %s L-System...",
+                     isThreading ? "multithreaded" : "single-threaded");
+    lsystem ribbon(isThreading);
     ribbon.Evaluate("Ribbon.xml");
     std::cout << "Success!\n";
 

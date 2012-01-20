@@ -14,8 +14,6 @@ using std::string;
 using namespace vmath;
 using namespace tthread;
 
-const bool EnableThreading = true;
-
 static float _radians(float degrees)
 {
     return degrees * 3.1415926535f / 180.0f;
@@ -29,9 +27,13 @@ static Matrix4 _ParseTransform(const string& xformString)
 {
     typedef std::map<string, Matrix4> Cache;
     static Cache cache;
-    Cache::iterator i = cache.find(xformString);
-    if (i != cache.end()) {
-        return i->second;
+    static mutex cacheMutex;
+    {
+        lock_guard<mutex> guard(cacheMutex);
+        Cache::iterator i = cache.find(xformString);
+        if (i != cache.end()) {
+            return i->second;
+        }
     }
     
     std::istringstream s(xformString);
@@ -82,6 +84,7 @@ static Matrix4 _ParseTransform(const string& xformString)
             diag::Fatal("Unrecognized xform token: %s\n", token.c_str());
         }
     }
+    lock_guard<mutex> guard(cacheMutex);
     cache[xformString] = xform;
     return xform;
 }
@@ -111,7 +114,8 @@ static void _AssignDefaults(pugi::xml_document& doc)
 }
 
 /// Pick a rule with the given name at random, respecting weights
-static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name)
+static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name,
+                                unsigned int* seed)
 {
     string path = FormatString("/rules/rule[@name='%s']", name);
     pugi::xpath_node_set rules = doc.select_nodes(path.c_str());
@@ -123,7 +127,7 @@ static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name)
     }
     diag::Check(sum > 0, "Unable to find rule %s\n", name);
     
-    int n = rand() % sum;
+    int n = rand_r(seed) % sum;
     for (pRule = rules.begin(); pRule != rules.end(); ++pRule) {
         int weight = pRule->node().attribute("weight").as_int();
         if (n < weight) {
@@ -138,10 +142,11 @@ static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name)
 void _ProcessRule(void* arg)
 {
     lsystem::ThreadInfo* info = reinterpret_cast<lsystem::ThreadInfo*>(arg);
-    info->Self->_ProcessRule(info->Entry, &info->Result);
+    info->Self->_ProcessRule(info->Entry, &info->Result, info->Seed);
 }
 
-void lsystem::_ProcessRule(const StackEntry& entry, Curve* result)
+void lsystem::_ProcessRule(const StackEntry& entry, Curve* result,
+                           unsigned int seed)
 {
     {
         lock_guard<mutex> guard(_mutexCompute);
@@ -177,7 +182,7 @@ void lsystem::_ProcessRule(const StackEntry& entry, Curve* result)
             // Switch to a different rule is one is specified
             if (entry.Node.attribute("successor")) {
                 const char* successor = entry.Node.attribute("successor").value();
-                pugi::xml_node rule = _PickRule(_doc, successor);
+                pugi::xml_node rule = _PickRule(_doc, successor, &seed);
                 StackEntry newEntry = {rule, 0, matrix};
                 stack.push_back(newEntry);
             }
@@ -196,7 +201,7 @@ void lsystem::_ProcessRule(const StackEntry& entry, Curve* result)
                 string tag = op.name();
                 if (tag == "call") {
                     const char* rule = op.attribute("rule").value();
-                    pugi::xml_node newRule = _PickRule(_doc, rule);
+                    pugi::xml_node newRule = _PickRule(_doc, rule, &seed);
                     StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
                     stack.push_back(newEntry);
                 } else if (tag == "instance") {
@@ -230,11 +235,8 @@ void lsystem::_ProcessRule(const StackEntry& entry, Curve* result)
 }
 
 /// Parse given XML file, evaluate rules, populate member curve
-void lsystem::Evaluate(const char* filename, int seed)
+void lsystem::Evaluate(const char* filename, unsigned int seed)
 {
-    // Seed the random number generator.
-    srand(seed);
-    
     // Parse the XML document
     diag::Print("Reading %s...\n", filename);
     pugi::xml_parse_result result = _doc.load_file(filename);
@@ -243,7 +245,7 @@ void lsystem::Evaluate(const char* filename, int seed)
     
     diag::Print("Evaluating rules...\n");
     
-    pugi::xml_node startRule = _PickRule(_doc, "entry");
+    pugi::xml_node startRule = _PickRule(_doc, "entry", &seed);
     StackEntry entry = { startRule, 0, Matrix4::identity() };
     
     // Extract a maximum recursion depth from the XML
@@ -257,14 +259,13 @@ void lsystem::Evaluate(const char* filename, int seed)
     _threadsCompute = 0;
     _maxThreads = thread::hardware_concurrency();
     std::vector<thread *> threads;
-    threads.reserve(_maxThreads);
 
     // Check for a multithread-amenable lsystem    
     pugi::xml_node op = entry.Node.first_child();
     int count = op.attribute("count").as_int();
     string tag = op.name();
 
-    if (EnableThreading && count > 1 && tag == "call" && !op.next_sibling()) {
+    if (_isThreading && count > 1 && tag == "call" && !op.next_sibling()) {
         string xformString = op.attribute("transforms").value();
         Matrix4 xform = _ParseTransform(xformString);
         const char* rule = op.attribute("rule").value();
@@ -276,10 +277,11 @@ void lsystem::Evaluate(const char* filename, int seed)
         while (count--) {
             matrix *= xform;
             ThreadInfo& curve = *pCurve++;
-            pugi::xml_node newRule = _PickRule(_doc, rule);
+            pugi::xml_node newRule = _PickRule(_doc, rule, &seed);
             StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
             curve.Entry = newEntry;
             curve.Self = this;
+            curve.Seed = seed;
             threads.push_back(new thread(::_ProcessRule, &curve));
         }
         
@@ -291,9 +293,14 @@ void lsystem::Evaluate(const char* filename, int seed)
         for (pCurve = curves.begin(); pCurve != curves.end(); ++pCurve) {
             _curve.splice(_curve.begin(), pCurve->Result);
         }
-        // TODO delete all threads
+
+        std::vector<thread *>::iterator pThread = threads.begin();
+        for (; pThread != threads.end(); ++pThread) {
+            delete *pThread;
+        }
+
     } else {
-        this->_ProcessRule(entry, &_curve);
+        this->_ProcessRule(entry, &_curve, seed);
     }
     
     diag::Print("%d total curve segments.\n", _curveLength);
