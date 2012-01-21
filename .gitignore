@@ -1,0 +1,8 @@
+*.o
+stats.xml
+*.slo
+.sconsign.dblite
+*~
+\#*\#
+*.pyc
+debug.rib
