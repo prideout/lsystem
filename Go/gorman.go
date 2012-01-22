@@ -12,7 +12,18 @@ func DrawCurve() {
 	C.curve(0.1, 0.04)
 }
 
-func Option(name string, varargs ...interface{}) {
+func freeArguments(namePointers []C.RtToken, ownedValues []unsafe.Pointer) {
+	for _, v := range namePointers {
+		C.free(unsafe.Pointer(v))
+	}
+	for _, v := range ownedValues {
+		C.free(v)
+	}
+}
+
+func unzipArguments(varargs ...interface{}) (namePointers []C.RtToken,
+valuePointers []C.RtPointer,
+ownedValues []unsafe.Pointer) {
 
 	if len(varargs)%2 != 0 {
 		fmt.Println("odd number of arguments")
@@ -20,8 +31,9 @@ func Option(name string, varargs ...interface{}) {
 	}
 
 	nargs := len(varargs) / 2
-	namePointers := make([]C.RtToken, nargs)
-	valuePointers := make([]C.RtPointer, nargs)
+	namePointers = make([]C.RtToken, nargs)
+	valuePointers = make([]C.RtPointer, nargs)
+	ownedValues = make([]unsafe.Pointer, nargs)
 
 	var pname string
 	for i, v := range varargs {
@@ -30,11 +42,11 @@ func Option(name string, varargs ...interface{}) {
 		if i%2 == 0 {
 			if stringified, ok := v.(string); ok {
 				pname = stringified
-				token := C.RtToken(C.CString(pname))
+				token := C.CString(pname)
 				namePointers[i/2] = token
-				defer C.free(unsafe.Pointer(token))
 			} else {
 				fmt.Printf("argument %d is not a string\n", i)
+				return
 			}
 			continue
 		}
@@ -49,32 +61,48 @@ func Option(name string, varargs ...interface{}) {
 			valuePointers[i/2] = C.RtPointer(&floatified)
 		case string:
 			stringified := v.(string)
-			token := C.RtToken(C.CString(stringified))
-			defer C.free(unsafe.Pointer(token))
+			token := C.CString(stringified)
 			valuePointers[i/2] = C.RtPointer(&token)
+			ownedValues[i/2] = unsafe.Pointer(token)
 		default:
 			fmt.Printf("'%s' has unknown type\n", pname)
+			return
 		}
 	}
-
-	token := C.RtToken(C.CString(name))
-	defer C.free(unsafe.Pointer(token))
-	C.RiOptionV(token, C.RtInt(nargs), &namePointers[0], &valuePointers[0])
+	return
 }
 
-// void RiOptionV(RtToken name, RtInt nParameters, RtToken nms[], RtPointer vals[]);
-func Option1(name string, param string, value int) {
-	pName := C.RtToken(C.CString(name))
-	param1 := C.RtToken(C.CString(param))
-	value1 := C.RtInt(value)
-	pValue1 := C.RtPointer(&value1)
-	C.RiOptionV(pName, 1, &param1, &pValue1)
-	C.free(unsafe.Pointer(pName))
-	C.free(unsafe.Pointer(param1))
+func Display(name string, dtype string, mode string, varargs ...interface{}) {
+
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
+
+	pDtype := C.CString(dtype)
+	defer C.free(unsafe.Pointer(pDtype))
+
+	pMode := C.CString(mode)
+	defer C.free(unsafe.Pointer(pMode))
+
+	names, values, ownership := unzipArguments(varargs...)
+	defer freeArguments(names, ownership)
+
+	nargs := C.RtInt(len(varargs) / 2)
+	C.RiDisplayV(pName, pDtype, pMode, nargs, &names[0], &values[0])
+}
+
+func Option(name string, varargs ...interface{}) {
+
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
+
+	names, values, ownership := unzipArguments(varargs...)
+	defer freeArguments(names, ownership)
+
+	nargs := C.RtInt(len(varargs) / 2)
+	C.RiOptionV(pName, nargs, &names[0], &values[0])
 }
 
 func Format(width int32, height int32, aspectRatio float32) {
-
 	w := C.RtInt(width)
 	h := C.RtInt(height)
 	r := C.RtFloat(aspectRatio)
@@ -82,9 +110,9 @@ func Format(width int32, height int32, aspectRatio float32) {
 }
 
 func Begin(name string) {
-	pName := C.RtToken(C.CString(name))
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
 	C.RiBegin(pName)
-	C.free(unsafe.Pointer(pName))
 }
 
 func End() {
