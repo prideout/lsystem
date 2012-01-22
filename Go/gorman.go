@@ -26,10 +26,10 @@ func freeArgs(names rtTokens, owned rawPointers) {
 }
 
 func safeArgs(names rtTokens, values rtPointers) (*C.RtToken, *C.RtPointer) {
-    if len(names) == 0 {
-        return new(C.RtToken), new(C.RtPointer)
-    }
-    return &names[0], &values[0]
+	if len(names) == 0 {
+		return new(C.RtToken), new(C.RtPointer)
+	}
+	return &names[0], &values[0]
 }
 
 func unzipArgs(varargs ...interface{}) (names rtTokens, vals rtPointers, owned rawPointers) {
@@ -62,11 +62,21 @@ func unzipArgs(varargs ...interface{}) (names rtTokens, vals rtPointers, owned r
 
 		// Odd-numbered arguments are values
 		switch v.(type) {
+		case bool:
+			boolified := v.(bool)
+			var intified int32 = 0
+			if boolified {
+				intified = 1
+			}
+			vals[i/2] = C.RtPointer(&intified)
 		case int, int32:
 			intified := v.(int)
 			vals[i/2] = C.RtPointer(&intified)
 		case float32:
 			floatified := v.(float32)
+			vals[i/2] = C.RtPointer(&floatified)
+		case float64:
+			floatified := float32(v.(float64))
 			vals[i/2] = C.RtPointer(&floatified)
 		case string:
 			stringified := v.(string)
@@ -82,35 +92,69 @@ func unzipArgs(varargs ...interface{}) (names rtTokens, vals rtPointers, owned r
 }
 
 func Display(name string, dtype string, mode string, varargs ...interface{}) {
-
 	pName := C.CString(name)
 	defer C.free(unsafe.Pointer(pName))
-
 	pDtype := C.CString(dtype)
 	defer C.free(unsafe.Pointer(pDtype))
-
 	pMode := C.CString(mode)
 	defer C.free(unsafe.Pointer(pMode))
-
 	names, values, ownership := unzipArgs(varargs...)
 	defer freeArgs(names, ownership)
-
 	nargs := C.RtInt(len(varargs) / 2)
 	pNames, pVals := safeArgs(names, values)
-    C.RiDisplayV(pName, pDtype, pMode, nargs, pNames, pVals)
+	C.RiDisplayV(pName, pDtype, pMode, nargs, pNames, pVals)
 }
 
 func Option(name string, varargs ...interface{}) {
-
 	pName := C.CString(name)
 	defer C.free(unsafe.Pointer(pName))
-
 	names, values, ownership := unzipArgs(varargs...)
 	defer freeArgs(names, ownership)
-
 	nargs := C.RtInt(len(varargs) / 2)
-    pNames, pVals := safeArgs(names, values)
+	pNames, pVals := safeArgs(names, values)
 	C.RiOptionV(pName, nargs, pNames, pVals)
+}
+
+func Projection(name string, varargs ...interface{}) {
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
+	names, values, ownership := unzipArgs(varargs...)
+	defer freeArgs(names, ownership)
+	nargs := C.RtInt(len(varargs) / 2)
+	pNames, pVals := safeArgs(names, values)
+	C.RiProjectionV(pName, nargs, pNames, pVals)
+}
+
+func Imager(name string, varargs ...interface{}) {
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
+	names, values, ownership := unzipArgs(varargs...)
+	defer freeArgs(names, ownership)
+	nargs := C.RtInt(len(varargs) / 2)
+	pNames, pVals := safeArgs(names, values)
+	C.RiImagerV(pName, nargs, pNames, pVals)
+}
+
+func Surface(name string, varargs ...interface{}) {
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
+	names, values, ownership := unzipArgs(varargs...)
+	defer freeArgs(names, ownership)
+	nargs := C.RtInt(len(varargs) / 2)
+	pNames, pVals := safeArgs(names, values)
+	C.RiSurfaceV(pName, nargs, pNames, pVals)
+}
+
+func Shader(name string, handle string, varargs ...interface{}) {
+	pName := C.CString(name)
+	defer C.free(unsafe.Pointer(pName))
+	pHandle := C.CString(handle)
+	defer C.free(unsafe.Pointer(pHandle))
+	names, values, ownership := unzipArgs(varargs...)
+	defer freeArgs(names, ownership)
+	nargs := C.RtInt(len(varargs) / 2)
+	pNames, pVals := safeArgs(names, values)
+	C.RiShaderV(pName, pHandle, nargs, pNames, pVals)
 }
 
 func Format(width int32, height int32, aspectRatio float32) {
@@ -124,6 +168,22 @@ func Begin(name string) {
 	pName := C.CString(name)
 	defer C.free(unsafe.Pointer(pName))
 	C.RiBegin(pName)
+}
+
+func ShadingRate(val float32) {
+	C.RiShadingRate(C.RtFloat(val))
+}
+
+func PixelSamples(x, y float32) {
+	C.RiPixelSamples(C.RtFloat(x), C.RtFloat(y))
+}
+
+func Translate(x, y, z float32) {
+	C.RiTranslate(C.RtFloat(x), C.RtFloat(y), C.RtFloat(z))
+}
+
+func Rotate(angle, x, y, z float32) {
+	C.RiRotate(C.RtFloat(angle), C.RtFloat(x), C.RtFloat(y), C.RtFloat(z))
 }
 
 func End() {
