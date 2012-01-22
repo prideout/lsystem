@@ -19,3 +19,7 @@ sample: install sample.go
 	$(GC) sample.go
 	$(LD) -r $(RMANTREE)/lib -o $@ sample.$O
 
+torus: install torus.go
+	$(GC) torus.go
+	$(LD) -r $(RMANTREE)/lib -o $@ torus.$O
+
