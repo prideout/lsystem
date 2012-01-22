@@ -5,15 +5,32 @@ import "C"
 
 import (
     "unsafe"
-//    "fmt"
+    "fmt"
 )
 
 func DrawCurve() {
     C.curve(0.1, 0.04)
 }
 
-// void RiOptionV(RtToken name, RtInt nParameters, RtToken nms[], RtPointer vals[]);
 
+func Option2(name string, varargs ...interface{}) {
+    for i, v := range varargs {
+        switch v.(type) {
+            case int, int32:
+                fmt.Printf("integer ")
+            case float32:
+                fmt.Printf("float ")
+            case string:
+                fmt.Printf("string ")
+            default:
+                fmt.Printf("unknown type of argument %d (0-based)\n", i)
+        }
+        fmt.Println(i, v)
+        
+    }
+}
+
+// void RiOptionV(RtToken name, RtInt nParameters, RtToken nms[], RtPointer vals[]);
 func Option(name string, param string, value int) {
     pName := C.RtToken(C.CString(name))
     param1 := C.RtToken(C.CString(param))
