@@ -23,3 +23,5 @@ torus: install torus.go
 	$(GC) torus.go
 	$(LD) -r $(RMANTREE)/lib -o $@ torus.$O
 
+pretty:
+	gofmt -tabindent=false -tabwidth=4 -w=true *.go
