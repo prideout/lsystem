@@ -14,7 +14,7 @@ func main() {
  
     var threadCount int = 2
     ri.Option("limits", "int threads", threadCount)
-    ri.Option2("statistics", "xmlfilename", "stats.xml")
+    ri.Option("statistics", "xmlfilename", "stats.xml")
     
     ri.Temp()
     ri.End();

@@ -6,3 +6,7 @@ stats.xml
 \#*\#
 *.pyc
 debug.rib
+*.6
+_cgo*
+_go*
+_obj
