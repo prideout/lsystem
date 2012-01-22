@@ -4,7 +4,7 @@ TARG=gorman
 
 CGOFILES=\
 	gorman.go
-
+	
 CGO_CFLAGS=-I$(RMANTREE)/include
 CGO_LDFLAGS+=-L$(RMANTREE)/lib
 CGO_LDFLAGS+=-lprman
@@ -15,13 +15,16 @@ CLEANFILES+=debug.rib
 
 include $(GOROOT)/src/Make.pkg
 
-sample: install sample.go
-	$(GC) sample.go
-	$(LD) -r $(RMANTREE)/lib -o $@ sample.$O
-
 torus: install torus.go
 	$(GC) torus.go
 	$(LD) -r $(RMANTREE)/lib -o $@ torus.$O
+
+lsystem: install lsystem.go
+	$(GC) lsystem.go
+
+curve: install curve.go lsystem
+	$(GC) curve.go
+	$(LD) -r $(RMANTREE)/lib -o $@ curve.$O
 
 pretty:
 	gofmt -tabindent=false -tabwidth=4 -w=true *.go
