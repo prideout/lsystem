@@ -43,7 +43,7 @@ func main() {
     // Floor
     ri.Attribute("identifier", "string name", "Floor")
     ri.Surface("Occlusion",
-        "em", color(0.65, 0.83, 0.),
+        "em", color(0, 0.65, 0.83),
         "samples", 64.)
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)

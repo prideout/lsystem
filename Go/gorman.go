@@ -1,6 +1,7 @@
 package gorman
 
-// #include "ri_wrap.c"
+// #include <stdlib.h>
+// #include "ri.h"
 import "C"
 
 import (
