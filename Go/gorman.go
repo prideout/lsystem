@@ -12,18 +12,27 @@ func DrawCurve() {
 	C.curve(0.1, 0.04)
 }
 
-func freeArguments(namePointers []C.RtToken, ownedValues []unsafe.Pointer) {
-	for _, v := range namePointers {
+type rtTokens []C.RtToken
+type rtPointers []C.RtPointer
+type rawPointers []unsafe.Pointer
+
+func freeArgs(names rtTokens, owned rawPointers) {
+	for _, v := range names {
 		C.free(unsafe.Pointer(v))
 	}
-	for _, v := range ownedValues {
+	for _, v := range owned {
 		C.free(v)
 	}
 }
 
-func unzipArguments(varargs ...interface{}) (namePointers []C.RtToken,
-valuePointers []C.RtPointer,
-ownedValues []unsafe.Pointer) {
+func safeArgs(names rtTokens, values rtPointers) (*C.RtToken, *C.RtPointer) {
+    if len(names) == 0 {
+        return new(C.RtToken), new(C.RtPointer)
+    }
+    return &names[0], &values[0]
+}
+
+func unzipArgs(varargs ...interface{}) (names rtTokens, vals rtPointers, owned rawPointers) {
 
 	if len(varargs)%2 != 0 {
 		fmt.Println("odd number of arguments")
@@ -31,9 +40,9 @@ ownedValues []unsafe.Pointer) {
 	}
 
 	nargs := len(varargs) / 2
-	namePointers = make([]C.RtToken, nargs)
-	valuePointers = make([]C.RtPointer, nargs)
-	ownedValues = make([]unsafe.Pointer, nargs)
+	names = make(rtTokens, nargs)
+	vals = make(rtPointers, nargs)
+	owned = make(rawPointers, nargs)
 
 	var pname string
 	for i, v := range varargs {
@@ -43,7 +52,7 @@ ownedValues []unsafe.Pointer) {
 			if stringified, ok := v.(string); ok {
 				pname = stringified
 				token := C.CString(pname)
-				namePointers[i/2] = token
+				names[i/2] = token
 			} else {
 				fmt.Printf("argument %d is not a string\n", i)
 				return
@@ -55,15 +64,15 @@ ownedValues []unsafe.Pointer) {
 		switch v.(type) {
 		case int, int32:
 			intified := v.(int)
-			valuePointers[i/2] = C.RtPointer(&intified)
+			vals[i/2] = C.RtPointer(&intified)
 		case float32:
 			floatified := v.(float32)
-			valuePointers[i/2] = C.RtPointer(&floatified)
+			vals[i/2] = C.RtPointer(&floatified)
 		case string:
 			stringified := v.(string)
 			token := C.CString(stringified)
-			valuePointers[i/2] = C.RtPointer(&token)
-			ownedValues[i/2] = unsafe.Pointer(token)
+			vals[i/2] = C.RtPointer(&token)
+			owned[i/2] = unsafe.Pointer(token)
 		default:
 			fmt.Printf("'%s' has unknown type\n", pname)
 			return
@@ -83,11 +92,12 @@ func Display(name string, dtype string, mode string, varargs ...interface{}) {
 	pMode := C.CString(mode)
 	defer C.free(unsafe.Pointer(pMode))
 
-	names, values, ownership := unzipArguments(varargs...)
-	defer freeArguments(names, ownership)
+	names, values, ownership := unzipArgs(varargs...)
+	defer freeArgs(names, ownership)
 
 	nargs := C.RtInt(len(varargs) / 2)
-	C.RiDisplayV(pName, pDtype, pMode, nargs, &names[0], &values[0])
+	pNames, pVals := safeArgs(names, values)
+    C.RiDisplayV(pName, pDtype, pMode, nargs, pNames, pVals)
 }
 
 func Option(name string, varargs ...interface{}) {
@@ -95,11 +105,12 @@ func Option(name string, varargs ...interface{}) {
 	pName := C.CString(name)
 	defer C.free(unsafe.Pointer(pName))
 
-	names, values, ownership := unzipArguments(varargs...)
-	defer freeArguments(names, ownership)
+	names, values, ownership := unzipArgs(varargs...)
+	defer freeArgs(names, ownership)
 
 	nargs := C.RtInt(len(varargs) / 2)
-	C.RiOptionV(pName, nargs, &names[0], &values[0])
+    pNames, pVals := safeArgs(names, values)
+	C.RiOptionV(pName, nargs, pNames, pVals)
 }
 
 func Format(width int32, height int32, aspectRatio float32) {

@@ -7,8 +7,7 @@ func main() {
 	launch := "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib"
 	ri.Begin(launch)
 	ri.Format(512, 320, 1)
-
-	//	ri.Display("grasshopper", "framebuffer", "rgba")
+	ri.Display("grasshopper", "framebuffer", "rgba")
 
 	//DisplayChannel "float _occlusion" 
 	//ShadingRate 4
