@@ -27,4 +27,4 @@ curve: install curve.go lsystem
 	$(LD) -r $(RMANTREE)/lib -o $@ curve.$O
 
 pretty:
-	gofmt -tabindent=false -tabwidth=4 -w=true *.go
+	gofmt -tabs=false -tabwidth=4 -w=true *.go

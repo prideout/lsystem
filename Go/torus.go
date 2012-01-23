@@ -1,11 +1,11 @@
 package main
 
 import (
-    "os"
-    "exec"
     "bufio"
+    "exec"
     "fmt"
     ri "gorman"
+    "os"
 )
 
 func main() {

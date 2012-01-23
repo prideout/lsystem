@@ -5,8 +5,8 @@ package gorman
 import "C"
 
 import (
-    "unsafe"
     "fmt"
+    "unsafe"
 )
 
 func Display(name string, dtype string, mode string, varargs ...interface{}) {
@@ -35,8 +35,8 @@ func Disk(height float32, radius float32, tmax float32, varargs ...interface{}) 
 }
 
 func Torus(majrad float32, minrad float32,
-phimin float32, phimax float32,
-tmax float32, varargs ...interface{}) {
+    phimin float32, phimax float32,
+    tmax float32, varargs ...interface{}) {
     a := C.RtFloat(majrad)
     i := C.RtFloat(minrad)
     p := C.RtFloat(phimin)
@@ -191,7 +191,7 @@ func safeArgs(names rtTokens, values rtPointers) (*C.RtToken, *C.RtPointer) {
 }
 
 func unzipArgs(varargs ...interface{}) (names rtTokens,
-vals rtPointers, owned rawPointers) {
+    vals rtPointers, owned rawPointers) {
 
     if len(varargs)%2 != 0 {
         fmt.Println("odd number of arguments")
