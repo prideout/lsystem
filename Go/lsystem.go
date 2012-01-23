@@ -46,6 +46,8 @@ func (cache *MatrixCache) ParseString(s string) {
     }
     reader := bufio.NewReader(strings.NewReader(s))
 
+    xform := vmath.M4Identity()
+
     readFloat := func() float32 {
         sx, _ := reader.ReadString(' ')
         fx, _ := strconv.ParseFloat(strings.TrimSpace(sx), 32)
@@ -60,11 +62,15 @@ func (cache *MatrixCache) ParseString(s string) {
             x := readFloat()
             y := readFloat()
             z := readFloat()
+            m := vmath.M4Scale(x, y, z)
+            xform = vmath.M4Mul(m, xform)
             fmt.Printf("s %f %f %f\n", x, y, z)
         case "t":
             x := readFloat()
             y := readFloat()
             z := readFloat()
+            m := vmath.M4Translate(x, y, z)
+            xform = vmath.M4Mul(m, xform)
             fmt.Printf("t %f %f %f\n", x, y, z)
         case "sa":
             a := readFloat()

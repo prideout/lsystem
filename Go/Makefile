@@ -19,7 +19,10 @@ torus: install torus.go
 	$(GC) torus.go
 	$(LD) -r $(RMANTREE)/lib -o $@ torus.$O
 
-lsystem: install lsystem.go
+vmathpkg:
+	cd vmath; make install
+
+lsystem: install lsystem.go vmathpkg
 	$(GC) lsystem.go
 
 curve: install curve.go lsystem
