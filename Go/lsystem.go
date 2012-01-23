@@ -64,35 +64,40 @@ func (cache *MatrixCache) ParseString(s string) {
             z := readFloat()
             m := vmath.M4Scale(x, y, z)
             xform = vmath.M4Mul(m, xform)
-            fmt.Printf("s %f %f %f\n", x, y, z)
         case "t":
             x := readFloat()
             y := readFloat()
             z := readFloat()
             m := vmath.M4Translate(x, y, z)
             xform = vmath.M4Mul(m, xform)
-            fmt.Printf("t %f %f %f\n", x, y, z)
         case "sa":
             a := readFloat()
-            fmt.Printf("sa %f\n", a)
+            m := vmath.M4Scale(a, a, a)
+            xform = vmath.M4Mul(m, xform)
         case "tx":
             x := readFloat()
-            fmt.Printf("tx %f\n", x)
+            m := vmath.M4Translate(x, 0, 0)
+            xform = vmath.M4Mul(m, xform)
         case "ty":
             y := readFloat()
-            fmt.Printf("ty %f\n", y)
+            m := vmath.M4Translate(0, y, 0)
+            xform = vmath.M4Mul(m, xform)
         case "tz":
             z := readFloat()
-            fmt.Printf("tz %f\n", z)
+            m := vmath.M4Translate(0, 0, z)
+            xform = vmath.M4Mul(m, xform)
         case "rx":
             x := readFloat()
-            fmt.Printf("rx %f\n", x)
+            m := vmath.M4RotateX(x)
+            xform = vmath.M4Mul(m, xform)
         case "ry":
             y := readFloat()
-            fmt.Printf("ry %f\n", y)
+            m := vmath.M4RotateY(y)
+            xform = vmath.M4Mul(m, xform)
         case "rz":
             z := readFloat()
-            fmt.Printf("rz %f\n", z)
+            m := vmath.M4RotateZ(z)
+            xform = vmath.M4Mul(m, xform)
         case "":
         default:
             fmt.Println("Unknown token: ", token)
@@ -123,10 +128,7 @@ func Evaluate(filename string) int {
     var xforms MatrixCache
 
     for _, rule := range lsys.Rules {
-        //fmt.Printf("Rule %d. %s -> %s\n", r, rule.Name, rule.Successor)
         for _, call := range rule.Calls {
-            //fmt.Printf("%d. count=%d\ttransforms=%s\trule=%s\n", 
-            //    i, call.Count, call.Transforms, call.Rule)
             xforms.ParseString(call.Transforms)
         }
         for _, inst := range rule.Instances {
