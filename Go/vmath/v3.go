@@ -46,10 +46,9 @@ func (v V3) Clone() V3 {
 }
 
 func (v V3) Length() float32 {
-    return sqrt(V3Dot(v,v))
+    return sqrt(V3Dot(v, v))
 }
 
 func (v V3) String() string {
     return fmt.Sprint(v.X, ", ", v.Y, ", ", v.Z)
 }
-

@@ -3,22 +3,17 @@ package vmath
 import "math"
 import "fmt"
 
-// https://bitbucket.org/prideout/pez-viewer/src/11899f6b6f02/vmath.h
-
-// TODO do something faster than this!
-func cos(f float32) float32 { return float32(math.Cos(float64(f))) }
-func sin(f float32) float32 { return float32(math.Sin(float64(f))) }
-func sqrt(f float32) float32 { return float32(math.Sqrt(float64(f))) }
-
 // Implements a 4x4 matrix type for 3D graphics.
 // Much like go's string type, M4 is generally immutable.
-// Nullary functions like transpose and derivative are methods:
+// Unlike the V3 (et al) type, matrices use pass-by-pointer semantics.
+// Unary operations are methods:
 //    m = m.Transpose()
 //    f := m.Derivative()
-// All other operations are functions:
-//    var x M4 := M4Mul(m, m)
+// Nullary and binary operations are functions:
+//    i := M4Identity()
+//    var x M4 = M4Mul(m, m)
 //    var y V4 = M4MulV3(m, v)
-//    var z M4 := M4MulT3(m, t)
+//    var z M4 = M4MulT3(m, t)
 //    scale := M4Scale(1.5)
 type M4 struct {
     matrix [4 * 4]float32
@@ -90,7 +85,7 @@ func M4RotateX(radians float32) *M4 {
     m.matrix = [4 * 4]float32{
         1, 0, 0, 0,
         0, c, s, 0,
-        0,-s, c, 0,
+        0, -s, c, 0,
         0, 0, 0, 1}
     return m
 }
@@ -101,7 +96,7 @@ func M4RotateY(radians float32) *M4 {
     s, c := sin(radians), cos(radians)
     m.matrix = [4 * 4]float32{
         1, 0, 0, 0,
-        c, 0,-s, 0,
+        c, 0, -s, 0,
         s, 0, c, 0,
         0, 0, 0, 1}
     return m
@@ -113,7 +108,7 @@ func M4RotateZ(radians float32) *M4 {
     s, c := sin(radians), cos(radians)
     m.matrix = [4 * 4]float32{
         c, s, 0, 0,
-       -s, c, 0, 0,
+        -s, c, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1}
     return m
@@ -128,11 +123,11 @@ func (m *M4) Clone() *M4 {
     return n
 }
 
-func (m M4) String() string {
+func (m *M4) String() string {
     x := m.matrix
-    return fmt.Sprintf("%f %f %f %f\n" +
-        "%f %f %f %f\n" +
-        "%f %f %f %f\n" +
+    return fmt.Sprintf("%f %f %f %f\n"+
+        "%f %f %f %f\n"+
+        "%f %f %f %f\n"+
         "%f %f %f %f\n",
         x[0], x[1], x[2], x[3],
         x[4], x[5], x[6], x[7],

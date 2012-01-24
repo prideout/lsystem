@@ -41,4 +41,3 @@ func (v P3) Clone() P3 {
 func (v P3) String() string {
     return fmt.Sprint(v.X, ", ", v.Y, ", ", v.Z)
 }
-
