@@ -3,9 +3,9 @@ package main
 import (
     "bufio"
     "fmt"
-    "strings"
     "os"
     "os/exec"
+    "strings"
     //    ri "gorman"
     "./lsystem"
 )
@@ -94,4 +94,3 @@ const RIBBON string = `<rules max_depth="3000">
     </rule>
 </rules>
 `
- 
