@@ -3,6 +3,7 @@ package main
 import (
     "bufio"
     "fmt"
+    "strings"
     "os"
     "os/exec"
     //    ri "gorman"
@@ -10,10 +11,9 @@ import (
 )
 
 func main() {
-
-    foo := lsystem.Evaluate("Ribbon.xml")
+    xml := strings.NewReader(RIBBON)
+    foo := lsystem.Evaluate(xml)
     fmt.Print(foo)
-
 }
 
 func compileShader(name string) {
@@ -49,3 +49,49 @@ const (
     ANSI_WHITE   string = "\x1b[1;37m"
     ANSI_RESET   string = "\x1b[0m"
 )
+
+const RIBBON string = `<rules max_depth="3000">
+    <rule name="entry">
+        <!--call count="72" transforms="rz 10" rule="hbox"/-->
+        <call count="144" transforms="rz 5" rule="hbox"/>
+    </rule>
+    <rule name="hbox"><call rule="r"/></rule>
+    <rule name="r"><call rule="forward"/></rule>
+    <rule name="r"><call rule="turn"/></rule>
+    <rule name="r"><call rule="turn2"/></rule>
+    <rule name="r"><call rule="turn4"/></rule>
+    <rule name="r"><call rule="turn3"/></rule>
+    <rule name="forward" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="rz 5.6 tx 0.1 sa 0.996" rule="forward"/>
+    </rule>
+    <rule name="turn" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="rz 5.6 tx 0.1 sa 0.996" rule="turn"/>
+    </rule>
+    <rule name="turn2" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="rz -5.6 tx 0.1 sa 0.996" rule="turn2"/>
+    </rule>
+    <rule name="turn3" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="ry -5.6 tx 0.1 sa 0.996" rule="turn3"/>
+    </rule>
+    <rule name="turn4" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="ry -5.6 tx 0.1 sa 0.996" rule="turn4"/>
+    </rule>
+    <rule name="turn5" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="rx -5.6 tx 0.1 sa 0.996" rule="turn5"/>
+    </rule>
+    <rule name="turn6" max_depth="90" successor="r">
+        <call rule="dbox"/>
+        <call transforms="rx -5.6 tx 0.1 sa 0.996" rule="turn6"/>
+    </rule>
+    <rule name="dbox">
+        <instance transforms="s 0.55 2.0 1.25" shape="curve"/>
+    </rule>
+</rules>
+`
+ 

@@ -4,8 +4,8 @@ import (
     "bufio"
     "encoding/xml"
     "fmt"
+    "io"
     "math/rand"
-    "os"
     "strconv"
     "strings"
     "vmath"
@@ -18,19 +18,12 @@ type CurvePoint struct {
 
 type Curve []CurvePoint
 
-// evaluates the rules in the given XML file and returns a list of curves
-func Evaluate(filename string) Curve {
+// evaluates the rules in the given XML stream and returns a list of curves
+func Evaluate(stream io.Reader) Curve {
 
     var curve Curve
-    xmlFile, err := os.Open(filename)
-    if err != nil {
-        fmt.Println("Error opening XML file:", err)
-        return curve
-    }
-    defer xmlFile.Close()
-
     var lsys LSystem
-    if err = xml.Unmarshal(xmlFile, &lsys); err != nil {
+    if err := xml.Unmarshal(stream, &lsys); err != nil {
         fmt.Println("Error parsing XML file:", err)
         return curve
     }
