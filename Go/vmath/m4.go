@@ -1,14 +1,14 @@
 package vmath
 
 import "math"
+import "fmt"
 
 // https://bitbucket.org/prideout/pez-viewer/src/11899f6b6f02/vmath.h
 
 // TODO do something faster than this!
 func cos(f float32) float32 { return float32(math.Cos(float64(f))) }
-
-// TODO do something faster than this!
 func sin(f float32) float32 { return float32(math.Sin(float64(f))) }
+func sqrt(f float32) float32 { return float32(math.Sqrt(float64(f))) }
 
 // Implements a 4x4 matrix type for 3D graphics.
 // Much like go's string type, M4 is generally immutable.
@@ -126,4 +126,16 @@ func (m *M4) Clone() *M4 {
         n.matrix[i] = m.matrix[i]
     }
     return n
+}
+
+func (m M4) String() string {
+    x := m.matrix
+    return fmt.Sprintf("%f %f %f %f\n" +
+        "%f %f %f %f\n" +
+        "%f %f %f %f\n" +
+        "%f %f %f %f\n",
+        x[0], x[1], x[2], x[3],
+        x[4], x[5], x[6], x[7],
+        x[8], x[9], x[10], x[11],
+        x[12], x[13], x[14], x[15])
 }

@@ -4,15 +4,70 @@ import (
     "bufio"
     "encoding/xml"
     "fmt"
+    "math/rand"
     "os"
     "strconv"
     "strings"
     "vmath"
 )
 
+type CurvePoint struct {
+    P vmath.P3
+    N vmath.V3
+}
+
+type Curve []CurvePoint
+
+// evaluates the rules in the given XML file and returns a list of curves
+func Evaluate(filename string) Curve {
+
+    var curve Curve
+    xmlFile, err := os.Open(filename)
+    if err != nil {
+        fmt.Println("Error opening XML file:", err)
+        return curve
+    }
+    defer xmlFile.Close()
+
+    var lsys LSystem
+    if err = xml.Unmarshal(xmlFile, &lsys); err != nil {
+        fmt.Println("Error parsing XML file:", err)
+        return curve
+    }
+
+    xforms := make(MatrixCache)
+
+    for _, rule := range lsys.Rules {
+        for _, call := range rule.Calls {
+            xforms.ParseString(call.Transforms)
+        }
+        for _, inst := range rule.Instances {
+            xforms.ParseString(inst.Transforms)
+        }
+    }
+
+    lsys.WeightSum = 0
+    for _, rule := range lsys.Rules {
+        if rule.Weight != 0 {
+            lsys.WeightSum += rule.Weight
+        } else {
+            lsys.WeightSum++
+        }
+    }
+
+    random := rand.New(rand.NewSource(42))
+    var stackNode StackNode
+    stackNode.RuleIndex = lsys.PickRule("entry", random)
+    stackNode.Transform = vmath.M4Identity()
+    
+    lsys.ProcessRule(stackNode, &curve, random)
+    return curve
+}
+
 type LSystem struct {
-    MaxDepth int
-    Rules    []Rule `xml:"rule"`
+    MaxDepth  int
+    Rules     []Rule `xml:"rule"`
+    WeightSum int
 }
 
 type Rule struct {
@@ -21,6 +76,7 @@ type Rule struct {
     Instances []Instance `xml:"instance"`
     MaxDepth  int        `xml:"max_depth,attr"`
     Successor string     `xml:"successor,attr"`
+    Weight    int        `xml:"weight,attr"`
 }
 
 type Call struct {
@@ -32,6 +88,24 @@ type Call struct {
 type Instance struct {
     Transforms string `xml:"transforms,attr"`
     Shape      string `xml:"string"`
+}
+
+func (self *LSystem) ProcessRule(stackNode StackNode, curve *Curve, random *rand.Rand) {
+}
+
+func (self *LSystem) PickRule(name string, random *rand.Rand) int {
+    n := random.Intn(self.WeightSum)
+    for i, rule := range self.Rules {
+        weight := rule.Weight
+        if weight == 0 {
+            weight = 1
+        }
+        if n < weight {
+            return i
+        }
+        n -= weight
+    }
+    return -1
 }
 
 type MatrixCache map[string]vmath.M4
@@ -106,36 +180,12 @@ func (cache *MatrixCache) ParseString(s string) {
             break
         }
     }
+    (*cache)[s] = *xform
     return
 }
 
-// evaluates the rules in the given XML file and returns a list of curves
-func Evaluate(filename string) int {
-
-    xmlFile, err := os.Open(filename)
-    if err != nil {
-        fmt.Println("Error opening XML file:", err)
-        return 0
-    }
-    defer xmlFile.Close()
-
-    var lsys LSystem
-    if err = xml.Unmarshal(xmlFile, &lsys); err != nil {
-        fmt.Println("Error parsing XML file:", err)
-        return 0
-    }
-
-    var xforms MatrixCache
-
-    for _, rule := range lsys.Rules {
-        for _, call := range rule.Calls {
-            xforms.ParseString(call.Transforms)
-        }
-        for _, inst := range rule.Instances {
-            xforms.ParseString(inst.Transforms)
-        }
-    }
-
-    return len(lsys.Rules)
-
+type StackNode struct {
+    RuleIndex int
+    Depth     int
+    Transform *vmath.M4
 }
