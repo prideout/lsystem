@@ -1,6 +1,5 @@
 package vmath
 
-import "math"
 import "fmt"
 
 // Implements a 4x4 matrix type for 3D graphics.

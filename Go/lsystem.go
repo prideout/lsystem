@@ -12,8 +12,8 @@ import (
 )
 
 type CurvePoint struct {
-    P vmath.P3
-    N vmath.V3
+    P   vmath.P3
+    N   vmath.V3
 }
 
 type Curve []CurvePoint
@@ -59,7 +59,7 @@ func Evaluate(filename string) Curve {
     var stackNode StackNode
     stackNode.RuleIndex = lsys.PickRule("entry", random)
     stackNode.Transform = vmath.M4Identity()
-    
+
     lsys.ProcessRule(stackNode, &curve, random)
     return curve
 }
