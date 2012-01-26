@@ -2,10 +2,10 @@ package main
 
 import (
     "bufio"
-    "exec"
     "fmt"
     ri "gorman"
     "os"
+    "os/exec"
 )
 
 func main() {
