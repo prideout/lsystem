@@ -7,12 +7,11 @@ import (
     "os/exec"
     "strings"
     //    ri "gorman"
-    "./lsystem"
 )
 
 func main() {
     xml := strings.NewReader(RIBBON)
-    foo := lsystem.Evaluate(xml)
+    foo := Evaluate(xml)
     fmt.Print(foo)
 }
 

@@ -1,0 +1,15 @@
+include $(GOROOT)/src/Make.inc
+
+TARG=curve
+
+GOFILES=\
+    lsystem.go\
+    stack.go\
+    curve.go\
+
+CLEANFILES += \
+    *.slo \
+    stats.xml \
+    debug.rib \
+    
+include $(GOROOT)/src/Make.cmd

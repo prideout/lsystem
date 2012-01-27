@@ -1,0 +1,13 @@
+include $(GOROOT)/src/Make.inc
+
+TARG=torus
+
+GOFILES=\
+    torus.go\
+
+CLEANFILES += \
+    *.slo \
+    stats.xml \
+    
+include $(GOROOT)/src/Make.cmd
+

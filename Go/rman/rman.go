@@ -1,4 +1,4 @@
-package gorman
+package rman
 
 // #include <stdlib.h>
 // #include "ri.h"
