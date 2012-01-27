@@ -2,7 +2,7 @@ clean:
 	make clean -f Makefile.curve
 	make clean -f Makefile.torus
 
-curve: curve.go
+curve: curve.go lsystem.go stack.go
 	make -f Makefile.curve
     
 torus: torus.go
