@@ -59,7 +59,7 @@ func Evaluate(stream io.Reader) Curve {
 }
 
 type LSystem struct {
-    MaxDepth  int
+    MaxDepth  int `xml:"max_depth,attr"`
     Rules     []Rule `xml:"rule"`
     WeightSum int
     Matrices  MatrixCache
@@ -124,51 +124,31 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
         }
 
         for _, call := range rule.Calls {
-			t := self.Matrices[call.Transforms]
-			matrix = vmath.M4Mul(matrix, &t)
+            t := self.Matrices[call.Transforms]
+            count := call.Count
+            if count == 0 {
+                count = 1
+            }
+            for ; count != 0; count-- {
+                matrix = vmath.M4Mul(matrix, &t)
+                fmt.Println("Calling ", call.Rule)
+                //pugi::xml_node newRule = _PickRule(_doc, rule, &seed);
+                //StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
+                //stack.push_back(newEntry);
+            }
         }
 
         for _, instance := range rule.Instances {
-			t := self.Matrices[instance.Transforms]
-			matrix = vmath.M4Mul(matrix, &t)
+            t := self.Matrices[instance.Transforms]
+            matrix = vmath.M4Mul(matrix, &t)
+            /*
+             CurvePoint* cp = new CurvePoint;
+             Vector4 v = matrix * Vector4(0,0,0,1);
+             cp->P = Point3(v.getXYZ());
+             cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
+             result->push_back(cp);
+            */
         }
-
-        /*        
-           // Iterate through the operations in the rule
-           pugi::xml_node op = entry.Node.first_child();
-           for (; op; op = op.next_sibling()) {
-               string xformString = op.attribute("transforms").value();
-               Matrix4 xform = _ParseTransform(xformString);
-               int count = op.attribute("count").as_int();
-               while (count--) {
-                   matrix *= xform;
-                   string tag = op.name();
-                   if (tag == "call") {
-                       const char* rule = op.attribute("rule").value();
-                       pugi::xml_node newRule = _PickRule(_doc, rule, &seed);
-                       StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
-                       stack.push_back(newEntry);
-                   } else if (tag == "instance") {
-                       CurvePoint* cp = new CurvePoint;
-                       Vector4 v = matrix * Vector4(0,0,0,1);
-                       cp->P = Point3(v.getXYZ());
-                       cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
-                       result->push_back(cp);
-
-                       // Give users a crude progress indicator by maintaining a count
-                       // Note that size() on std::list can have linear complexity (!)
-                       if (++_curveLength >= progressCount + 10000) {
-                           diag::Print("%d curve segments so far...\n", _curveLength);
-                           progressCount = _curveLength;
-                       }
-
-                   } else {
-                       op.print(std::cout);
-                       diag::Print("Unrecognized operation: '%s'\n", tag.c_str());
-                   }
-               }
-           }
-        */
     }
 }
 
