@@ -1,6 +1,9 @@
 curve: curve.go lsystem.go stack.go
 	make -f Makefile.curve
 
+image: curve
+	./curve
+
 torus: torus.go
 	make -f Makefile.torus
 

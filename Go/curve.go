@@ -11,8 +11,7 @@ import (
 
 func main() {
     xml := strings.NewReader(RIBBON)
-    foo := Evaluate(xml)
-    fmt.Print(foo)
+    Evaluate(xml)
 }
 
 func compileShader(name string) {
@@ -49,7 +48,7 @@ const (
     ANSI_RESET   string = "\x1b[0m"
 )
 
-const RIBBON string = `<rules max_depth="300">
+const RIBBON string = `<rules max_depth="3000">
     <rule name="entry">
         <call count="144" transforms="rz 5" rule="hbox"/>
     </rule>

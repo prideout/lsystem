@@ -50,5 +50,5 @@ func (v V3) Length() float32 {
 }
 
 func (v V3) String() string {
-    return fmt.Sprint(v.X, ", ", v.Y, ", ", v.Z)
+    return fmt.Sprintf("(%g, %g, %g)", v.X, v.Y, v.Z)
 }

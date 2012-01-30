@@ -47,5 +47,5 @@ func (p P3) Clone() P3 {
 }
 
 func (p P3) String() string {
-    return fmt.Sprint(p.X, ", ", p.Y, ", ", p.Z)
+    return fmt.Sprintf("(%g, %g, %g)", p.X, p.Y, p.Z)
 }

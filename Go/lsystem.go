@@ -28,14 +28,6 @@ func Evaluate(stream io.Reader) Curve {
         return curve
     }
 
-	// Provide defaults
-    for i := range lsys.Rules {
-		w := &lsys.Rules[i].Weight
-		if *w == 0 {
-			*w = 1
-		}
-	}
-
     // Parse the transform strings
     lsys.Matrices = make(MatrixCache)
     for _, rule := range lsys.Rules {
@@ -46,7 +38,17 @@ func Evaluate(stream io.Reader) Curve {
             lsys.Matrices.ParseString(inst.Transforms)
         }
     }
+	lsys.Matrices[""] = *vmath.M4Identity()
 
+	// Provide defaults
+    for i := range lsys.Rules {
+		r := &lsys.Rules[i]
+		if r.Weight == 0 {
+			r.Weight = 1
+		}
+	}
+
+	// Seed the random-number generator and pick the entry rule
     random := rand.New(rand.NewSource(42))
     start := StackNode{
         RuleIndex: lsys.PickRule("entry", random),
@@ -114,7 +116,7 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
             if rule.Successor != "" {
                 next := StackNode{
                 RuleIndex: self.PickRule(rule.Successor, random),
-                Transform: matrix,
+                Transform: matrix.Clone(),
                 }
                 stack.Push(next)
             }
@@ -123,7 +125,10 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
         }
 
         for _, call := range rule.Calls {
-            t := self.Matrices[call.Transforms]
+            t, ok := self.Matrices[call.Transforms]
+			if !ok {
+				fmt.Println("Unable to compute matrix for: ", call.Transforms)
+			}
             count := call.Count
             if count == 0 {
                 count = 1
