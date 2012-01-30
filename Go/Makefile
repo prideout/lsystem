@@ -4,9 +4,9 @@ clean:
 
 curve: curve.go lsystem.go stack.go
 	make -f Makefile.curve
-    
+
 torus: torus.go
 	make -f Makefile.torus
-	
+
 pretty:
 	gofmt -tabs=false -tabwidth=4 -w=true *.go

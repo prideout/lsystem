@@ -59,7 +59,7 @@ func Evaluate(stream io.Reader) Curve {
 }
 
 type LSystem struct {
-    MaxDepth  int `xml:"max_depth,attr"`
+    MaxDepth  int    `xml:"max_depth,attr"`
     Rules     []Rule `xml:"rule"`
     WeightSum int
     Matrices  MatrixCache
@@ -130,24 +130,28 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
                 count = 1
             }
             for ; count != 0; count-- {
-                matrix = vmath.M4Mul(matrix, &t)
-                fmt.Println("Calling ", call.Rule)
-                //pugi::xml_node newRule = _PickRule(_doc, rule, &seed);
-                //StackEntry newEntry = { newRule, entry.Depth + 1, matrix };
-                //stack.push_back(newEntry);
+                matrix = matrix.MulM4(&t)
+                newRule := self.PickRule(call.Rule, random)
+                next := StackNode{
+                    RuleIndex: newRule,
+                    Depth:     e.Depth + 1,
+                    Transform: matrix,
+                }
+                stack.Push(next)
             }
         }
 
         for _, instance := range rule.Instances {
             t := self.Matrices[instance.Transforms]
-            matrix = vmath.M4Mul(matrix, &t)
-            /*
-             CurvePoint* cp = new CurvePoint;
-             Vector4 v = matrix * Vector4(0,0,0,1);
-             cp->P = Point3(v.getXYZ());
-             cp->N = matrix.getUpper3x3() * Vector3(0, 0, 1);
-             result->push_back(cp);
-            */
+            matrix = matrix.MulM4(&t)
+			p := vmath.P3FromV3(matrix.GetTranslation())
+			n := vmath.V3New(0, 0, 1)
+			n = matrix.GetUpperLeft().MulV3(n)
+			c := CurvePoint{P: p, N:n}
+            *curve = append(*curve, c)
+			if len(*curve) % 10000 == 0 {
+				fmt.Printf("Instanced %d nodes\n", len(*curve))
+			}
         }
     }
 }
@@ -196,41 +200,41 @@ func (cache *MatrixCache) ParseString(s string) {
             y := readFloat()
             z := readFloat()
             m := vmath.M4Scale(x, y, z)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "t":
             x := readFloat()
             y := readFloat()
             z := readFloat()
             m := vmath.M4Translate(x, y, z)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "sa":
             a := readFloat()
             m := vmath.M4Scale(a, a, a)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "tx":
             x := readFloat()
             m := vmath.M4Translate(x, 0, 0)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "ty":
             y := readFloat()
             m := vmath.M4Translate(0, y, 0)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "tz":
             z := readFloat()
             m := vmath.M4Translate(0, 0, z)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "rx":
             x := readFloat()
             m := vmath.M4RotateX(x)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "ry":
             y := readFloat()
             m := vmath.M4RotateY(y)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "rz":
             z := readFloat()
             m := vmath.M4RotateZ(z)
-            xform = vmath.M4Mul(m, xform)
+            xform = xform.MulM4(m)
         case "":
         default:
             fmt.Println("Unknown token: ", token)

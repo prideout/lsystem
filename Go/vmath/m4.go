@@ -52,9 +52,8 @@ func M4Scale(x, y, z float32) *M4 {
 }
 
 // Create the product of two 4x4 matrices
-func M4Mul(a *M4, b *M4) *M4 {
+func (a *M4) MulM4(b *M4) *M4 {
     m := new(M4)
-    //    m.matrix = new([4 * 4]float32)
     for x := 0; x < 16; x += 4 {
         y, z, w := x+1, x+2, x+3
         m.matrix[x] = a.matrix[x]*b.matrix[0] +
@@ -122,8 +121,26 @@ func (m *M4) Clone() *M4 {
     return n
 }
 
+// Return a M3 object for the upper-left portion
+func (m *M4) GetUpperLeft() *M3 {
+    n := new(M3)
+    x := &m.matrix
+    n.matrix = [3 * 3]float32{
+        x[0], x[1], x[2],
+        x[4], x[5], x[6],
+        x[8], x[9], x[10]}
+    return n
+}
+
+// Return last row of matrix
+func (m *M4) GetTranslation() V3 {
+    x := &m.matrix
+    return V3New(x[12], x[13], x[14])
+}
+
+// Get string representation to appease fmt.Printf
 func (m *M4) String() string {
-    x := m.matrix
+    x := &m.matrix
     return fmt.Sprintf("%f %f %f %f\n"+
         "%f %f %f %f\n"+
         "%f %f %f %f\n"+

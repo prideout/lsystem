@@ -5,10 +5,11 @@ TARG=vmath
 GOFILES=\
 	readme.go \
 	f32.go \
+	m3.go \
 	m4.go \
 	v3.go \
 	p3.go \
-	
+
 include $(GOROOT)/src/Make.pkg
 
 pretty:

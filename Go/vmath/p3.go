@@ -9,35 +9,43 @@ type P3 struct {
 }
 
 func P3New(x, y, z float32) P3 {
-    v := new(P3)
-    v.X = x
-    v.Y = y
-    v.Z = z
-    return *v
+    p := new(P3)
+    p.X = x
+    p.Y = y
+    p.Z = z
+    return *p
 }
 
-func P3Distance(a P3, b P3) float32 {
-    return P3Sub(a, b).Length()
+func P3FromV3(v V3) P3 {
+    p := new(P3)
+    p.X = v.X
+    p.Y = v.Y
+    p.Z = v.Z
+    return *p
 }
 
-func P3Add(a P3, b V3) P3 {
+func (a P3) Distance(b P3) float32 {
+    return a.Sub(b).Length()
+}
+
+func (a P3) Add(b V3) P3 {
     return P3New(
         a.X+b.X,
         a.Y+b.Y,
         a.Z+b.Z)
 }
 
-func P3Sub(a P3, b P3) V3 {
+func (a P3) Sub(b P3) V3 {
     return V3New(
         a.X-b.X,
         a.Y-b.Y,
         a.Z-b.Z)
 }
 
-func (v P3) Clone() P3 {
-    return P3New(v.X, v.Y, v.Z)
+func (p P3) Clone() P3 {
+    return P3New(p.X, p.Y, p.Z)
 }
 
-func (v P3) String() string {
-    return fmt.Sprint(v.X, ", ", v.Y, ", ", v.Z)
+func (p P3) String() string {
+    return fmt.Sprint(p.X, ", ", p.Y, ", ", p.Z)
 }
