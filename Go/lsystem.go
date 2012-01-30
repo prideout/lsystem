@@ -28,6 +28,14 @@ func Evaluate(stream io.Reader) Curve {
         return curve
     }
 
+	// Provide defaults
+    for i := range lsys.Rules {
+		w := &lsys.Rules[i].Weight
+		if *w == 0 {
+			*w = 1
+		}
+	}
+
     // Parse the transform strings
     lsys.Matrices = make(MatrixCache)
     for _, rule := range lsys.Rules {
@@ -36,15 +44,6 @@ func Evaluate(stream io.Reader) Curve {
         }
         for _, inst := range rule.Instances {
             lsys.Matrices.ParseString(inst.Transforms)
-        }
-    }
-
-    lsys.WeightSum = 0
-    for _, rule := range lsys.Rules {
-        if rule.Weight != 0 {
-            lsys.WeightSum += rule.Weight
-        } else {
-            lsys.WeightSum++
         }
     }
 
@@ -61,7 +60,6 @@ func Evaluate(stream io.Reader) Curve {
 type LSystem struct {
     MaxDepth  int    `xml:"max_depth,attr"`
     Rules     []Rule `xml:"rule"`
-    WeightSum int
     Matrices  MatrixCache
 }
 
@@ -95,6 +93,7 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
     stack.Push(start)
 
     for stack.Len() > 0 {
+
         e := stack.Pop()
 
         localMax := self.MaxDepth
@@ -114,8 +113,8 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
             // Switch to a different rule is one is specified
             if rule.Successor != "" {
                 next := StackNode{
-                    RuleIndex: self.PickRule(rule.Successor, random),
-                    Transform: matrix,
+                RuleIndex: self.PickRule(rule.Successor, random),
+                Transform: matrix,
                 }
                 stack.Push(next)
             }
@@ -129,13 +128,13 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
             if count == 0 {
                 count = 1
             }
-            for ; count != 0; count-- {
+            for ; count > 0; count-- {
                 matrix = matrix.MulM4(&t)
                 newRule := self.PickRule(call.Rule, random)
                 next := StackNode{
                     RuleIndex: newRule,
                     Depth:     e.Depth + 1,
-                    Transform: matrix,
+                    Transform: matrix.Clone(),
                 }
                 stack.Push(next)
             }
@@ -144,30 +143,44 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
         for _, instance := range rule.Instances {
             t := self.Matrices[instance.Transforms]
             matrix = matrix.MulM4(&t)
-			p := vmath.P3FromV3(matrix.GetTranslation())
-			n := vmath.V3New(0, 0, 1)
-			n = matrix.GetUpperLeft().MulV3(n)
-			c := CurvePoint{P: p, N:n}
+            p := vmath.P3FromV3(matrix.GetTranslation())
+            n := vmath.V3New(0, 0, 1)
+            n = matrix.GetUpperLeft().MulV3(n)
+            c := CurvePoint{P: p, N: n}
             *curve = append(*curve, c)
-			if len(*curve) % 10000 == 0 {
-				fmt.Printf("Instanced %d nodes\n", len(*curve))
-			}
+            if len(*curve)%10000 == 0 {
+                fmt.Printf("Instanced %d nodes (stack = %d)\n", len(*curve), stack.Len())
+            }
         }
     }
 }
 
 func (self *LSystem) PickRule(name string, random *rand.Rand) int {
-    n := random.Intn(self.WeightSum)
-    for i, rule := range self.Rules {
+
+	// Sum up the weights of all rules with this name:
+	var sum int = 0
+    for _, rule := range self.Rules {
+		if rule.Name != name {
+			continue
+		}
         weight := rule.Weight
-        if weight == 0 {
-            weight = 1
-        }
+		sum += weight
+	}
+
+	// Choose a rule at random:
+    n := random.Intn(sum)
+    for i, rule := range self.Rules {
+		if rule.Name != name {
+			continue
+		}
+        weight := rule.Weight
         if n < weight {
             return i
         }
         n -= weight
     }
+
+	fmt.Println("Error.")
     return -1
 }
 

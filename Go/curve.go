@@ -49,9 +49,8 @@ const (
     ANSI_RESET   string = "\x1b[0m"
 )
 
-const RIBBON string = `<rules max_depth="3000">
+const RIBBON string = `<rules max_depth="300">
     <rule name="entry">
-        <!--call count="72" transforms="rz 10" rule="hbox"/-->
         <call count="144" transforms="rz 5" rule="hbox"/>
     </rule>
     <rule name="hbox"><call rule="r"/></rule>
