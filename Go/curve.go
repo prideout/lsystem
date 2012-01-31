@@ -5,8 +5,8 @@ import (
     "fmt"
     "os"
     "os/exec"
-    "strings"
     ri "rman"
+    "strings"
 )
 
 func initCamera() {
@@ -18,36 +18,52 @@ func initCamera() {
 }
 
 func drawCurve(curve *Curve) {
-	var normals, points []float32 
-	var vertsPerCurve []uint32
+    var normals, points []float32
+    var vertsPerCurve []int
 
-	var count uint32 = 0
-	for i, c := range *curve {
-		marker := (c.N.X == 0 && c.N.Y == 0 && c.N.Z == 0)
-		if i == len(*curve) - 1 || marker {
-			if count == 1 {
-				n := len(points)
-				points = points[:n-3]
-				normals = normals[:n-3]
-			} else if count > 1 {
-				vertsPerCurve = append(vertsPerCurve, count)
-			}
-			count = 0
-			continue
-		}
-		add := func(s *[]float32, x, y, z float32) {
-			*s = append(append(append(*s, x), y), z)
-		}
-		add(&points, c.P.X, c.P.Y, c.P.Z)
-		add(&normals, c.N.X, c.N.Y, c.N.Z)
-		count++
-	}
+    var count int = 0
+    for i, c := range *curve {
+        marker := (c.N.X == 0 && c.N.Y == 0 && c.N.Z == 0)
+        if i == len(*curve)-1 || marker {
+            if count == 1 {
+                n := len(points)
+                points = points[:n-3]
+                normals = normals[:n-3]
+            } else if count > 1 {
+                vertsPerCurve = append(vertsPerCurve, count)
+            }
+            count = 0
+            continue
+        }
+        add := func(s *[]float32, x, y, z float32) {
+            *s = append(append(append(*s, x), y), z)
+        }
+        add(&points, c.P.X, c.P.Y, c.P.Z)
+        add(&normals, c.N.X, c.N.Y, c.N.Z)
+        count++
+    }
 
-	fmt.Print(count, points, normals, vertsPerCurve)
+    // Validate that everything is kosher:
+    var total int = 0
+    for _, c := range vertsPerCurve {
+        total += c
+    }
+    pointCount := len(points) / 3
+    if total != pointCount {
+        fmt.Printf("Incorrect curve topology: %d != %d\n",
+            total, pointCount)
+    }
+
+    // Submit the gprim to prman:
+    var curveWidth float32 = 0.025
+    ri.Curves("linear", vertsPerCurve, "nonperiodic",
+        "P", points,
+        "N", normals,
+        "constantwidth", curveWidth)
 }
 
 func drawWorld(curve *Curve) {
-	ri.WorldBegin()
+    ri.WorldBegin()
 
     ri.Declare("samples", "float")
     ri.Declare("em", "color")
@@ -78,7 +94,7 @@ func drawWorld(curve *Curve) {
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
     ri.Translate(0, 0, -0.55)
-	drawCurve(curve)
+    drawCurve(curve)
     ri.TransformEnd()
 
     ri.WorldEnd()
@@ -101,9 +117,9 @@ func main() {
         "xmlfilename", "stats.xml",
         "endofframe", true)
     ri.PixelSamples(4, 4)
-	initCamera()
-	drawWorld(&curve)
-	ri.End()
+    initCamera()
+    drawWorld(&curve)
+    ri.End()
 }
 
 func compileShader(name string) {
@@ -140,9 +156,9 @@ const (
     ANSI_RESET   string = "\x1b[0m"
 )
 
-const RIBBON string = `<rules max_depth="30">
+const RIBBON string = `<rules max_depth="300">
     <rule name="entry">
-        <call count="14" transforms="rz 5" rule="hbox"/>
+        <call count="144" transforms="rz 5" rule="hbox"/>
     </rule>
     <rule name="hbox"><call rule="r"/></rule>
     <rule name="r"><call rule="forward"/></rule>
