@@ -6,12 +6,104 @@ import (
     "os"
     "os/exec"
     "strings"
-    //    ri "gorman"
+    ri "rman"
 )
+
+func initCamera() {
+    ri.Projection("perspective", "fov", 30.)
+    ri.Translate(0, -0.25, 10)
+    ri.Rotate(-20, 1, 0, 0)
+    ri.Rotate(180, 1, 0, 0)
+    ri.Imager("Vignette")
+}
+
+func drawCurve(curve *Curve) {
+	var normals, points []float32 
+	var vertsPerCurve []uint32
+
+	var count uint32 = 0
+	for i, c := range *curve {
+		marker := (c.N.X == 0 && c.N.Y == 0 && c.N.Z == 0)
+		if i == len(*curve) - 1 || marker {
+			if count == 1 {
+				n := len(points)
+				points = points[:n-3]
+				normals = normals[:n-3]
+			} else if count > 1 {
+				vertsPerCurve = append(vertsPerCurve, count)
+			}
+			count = 0
+			continue
+		}
+		add := func(s *[]float32, x, y, z float32) {
+			*s = append(append(append(*s, x), y), z)
+		}
+		add(&points, c.P.X, c.P.Y, c.P.Z)
+		add(&normals, c.N.X, c.N.Y, c.N.Z)
+		count++
+	}
+
+	fmt.Print(count, points, normals, vertsPerCurve)
+}
+
+func drawWorld(curve *Curve) {
+	ri.WorldBegin()
+
+    ri.Declare("samples", "float")
+    ri.Declare("em", "color")
+    ri.Attribute("cull",
+        "int backfacing", false,
+        "int hidden", false)
+    ri.Attribute("visibility",
+        "int diffuse", true,
+        "int specular", true)
+    ri.Attribute("dice",
+        "int rasterorient", false)
+
+    // Floor
+    ri.Attribute("identifier", "string name", "Floor")
+    ri.Surface("Occlusion",
+        "em", color(0, 0.65, 0.83),
+        "samples", 64.)
+    ri.TransformBegin()
+    ri.Rotate(90, 1, 0, 0)
+    ri.Disk(-0.7, 300, 360)
+    ri.TransformEnd()
+
+    // Sculpture
+    ri.Attribute("identifier", "string name", "Sculpture")
+    ri.Surface("Occlusion",
+        "em", gray(1.1),
+        "samples", 64.)
+    ri.TransformBegin()
+    ri.Rotate(90, 1, 0, 0)
+    ri.Translate(0, 0, -0.55)
+	drawCurve(curve)
+    ri.TransformEnd()
+
+    ri.WorldEnd()
+}
 
 func main() {
     xml := strings.NewReader(RIBBON)
-    Evaluate(xml)
+    curve := Evaluate(xml)
+
+    compileShader("Occlusion")
+    compileShader("Vignette")
+
+    launch := "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib"
+    ri.Begin(launch)
+    ri.Format(512, 320, 1)
+    ri.Display("grasshopper", "framebuffer", "rgba")
+    ri.ShadingRate(4)
+    ri.Option("limits", "int threads", 2)
+    ri.Option("statistics",
+        "xmlfilename", "stats.xml",
+        "endofframe", true)
+    ri.PixelSamples(4, 4)
+	initCamera()
+	drawWorld(&curve)
+	ri.End()
 }
 
 func compileShader(name string) {
@@ -48,9 +140,9 @@ const (
     ANSI_RESET   string = "\x1b[0m"
 )
 
-const RIBBON string = `<rules max_depth="3000">
+const RIBBON string = `<rules max_depth="30">
     <rule name="entry">
-        <call count="144" transforms="rz 5" rule="hbox"/>
+        <call count="14" transforms="rz 5" rule="hbox"/>
     </rule>
     <rule name="hbox"><call rule="r"/></rule>
     <rule name="r"><call rule="forward"/></rule>
