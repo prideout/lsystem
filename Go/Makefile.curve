@@ -11,5 +11,7 @@ CLEANFILES += \
     *.slo \
     stats.xml \
     debug.rib \
-    
+
+LDIMPORTS += -r $(RMANTREE)/lib
+
 include $(GOROOT)/src/Make.cmd
