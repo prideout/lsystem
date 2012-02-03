@@ -67,7 +67,7 @@ _DrawCurves(const lsystem& ribbon)
         total, points.size() / 3);
 
     RtInt ncurves = RtInt(vertsPerCurve.size());
-    float curveWidth = 0.025f;
+    float curveWidth = 0.05f;
     RiCurves("linear", ncurves, &vertsPerCurve[0],
         "nonperiodic",
         RI_P, &points[0],
@@ -151,7 +151,7 @@ _InitCamera()
 {
     float fov = 30.0f;
     RiProjection("perspective", RI_FOV, &fov, RI_NULL);
-    RiTranslate(0, -0.25, 10);
+    RiTranslate(0, -0.25, 5);
     RiRotate(-20, 1, 0, 0);
     RiRotate(180, 1, 0, 0);
     RiImager("Vignette", RI_NULL);

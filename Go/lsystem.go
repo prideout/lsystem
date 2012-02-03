@@ -18,7 +18,7 @@ type CurvePoint struct {
 
 type Curve []CurvePoint
 
-// evaluates the rules in the given XML stream and returns a list of curves
+// Evaluates the rules in the given XML stream and returns a list of curves
 func Evaluate(stream io.Reader) Curve {
 
     var curve Curve
@@ -148,7 +148,10 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
         for _, instance := range rule.Instances {
             t := self.Matrices[instance.Transforms]
             matrix = matrix.MulM4(&t)
-            p := vmath.P3FromV3(matrix.GetTranslation())
+            v := vmath.V4New(0, 0, 0, 1)
+            v = matrix.MulV4(v)
+            p := vmath.P3FromV4(v)
+            fmt.Println(v, " ", p)
             n := vmath.V3New(0, 0, 1)
             n = matrix.GetUpperLeft().MulV3(n)
             c := CurvePoint{P: p, N: n}
@@ -242,15 +245,15 @@ func (cache *MatrixCache) ParseString(s string) {
             m := vmath.M4Translate(0, 0, z)
             xform = xform.MulM4(m)
         case "rx":
-            x := readFloat()
+            x := radians(readFloat())
             m := vmath.M4RotateX(x)
             xform = xform.MulM4(m)
         case "ry":
-            y := readFloat()
+            y := radians(readFloat())
             m := vmath.M4RotateY(y)
             xform = xform.MulM4(m)
         case "rz":
-            z := readFloat()
+            z := radians(readFloat())
             m := vmath.M4RotateZ(z)
             xform = xform.MulM4(m)
         case "":

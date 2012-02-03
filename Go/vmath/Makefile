@@ -8,6 +8,7 @@ GOFILES=\
 	m3.go \
 	m4.go \
 	v3.go \
+	v4.go \
 	p3.go \
 
 include $(GOROOT)/src/Make.pkg

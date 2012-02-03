@@ -24,6 +24,14 @@ func P3FromV3(v V3) P3 {
     return *p
 }
 
+func P3FromV4(v V4) P3 {
+    p := new(P3)
+    p.X = v.X
+    p.Y = v.Y
+    p.Z = v.Z
+    return *p
+}
+
 func (a P3) Distance(b P3) float32 {
     return a.Sub(b).Length()
 }
