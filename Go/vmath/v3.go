@@ -1,6 +1,8 @@
 package vmath
 
-import "fmt"
+import (
+    "fmt"
+)
 
 // https://bitbucket.org/prideout/pez-viewer/src/11899f6b6f02/vmath.h
 
@@ -47,6 +49,13 @@ func (v V3) Clone() V3 {
 
 func (v V3) Length() float32 {
     return sqrt(v.Dot(v))
+}
+
+func (a V3) Equivalent(b V3, ε float32) bool {
+    return true &&
+        abs(b.X-a.X) < ε &&
+        abs(b.Y-a.Y) < ε &&
+        abs(b.Z-a.Z) < ε
 }
 
 func (v V3) String() string {
