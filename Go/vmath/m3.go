@@ -75,8 +75,8 @@ func M3RotateX(radians float32) *M3 {
     s, c := sin(radians), cos(radians)
     m.matrix = [3 * 3]float32{
         1, 0, 0,
-        0, c, s,
-        0, -s, c}
+        0, c, -s,
+        0, s, c}
     return m
 }
 
@@ -85,9 +85,9 @@ func M3RotateY(radians float32) *M3 {
     m := new(M3)
     s, c := sin(radians), cos(radians)
     m.matrix = [3 * 3]float32{
-        1, 0, 0,
-        c, 0, -s,
-        s, 0, c}
+        c, 0, s,
+        0, 1, 0,
+        -s, 0, c}
     return m
 }
 
