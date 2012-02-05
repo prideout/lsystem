@@ -149,7 +149,7 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
             t := self.Matrices[instance.Transforms]
             matrix = matrix.MulM4(&t)
             v := vmath.V4New(0, 0, 0, 1)
-            v = matrix.MulV4(v)
+            v = matrix.MulV4(v) // there's got to be something more efficient than this
             p := vmath.P3FromV4(v)
             fmt.Println(v, " ", p)
             n := vmath.V3New(0, 0, 1)

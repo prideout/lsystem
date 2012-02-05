@@ -36,32 +36,62 @@ func TestVec3(t *testing.T) {
     M := M3RotateZ(ᴨ / 2)
     v := M.MulV3(i)
     if !v.Equivalent(j, ε) {
-        t.Error("Rotation about Z")
+        t.Error("M3 Rotation about Z(a)", v)
     }
     v = M.MulV3(j)
     if !v.Equivalent(V3New(-1, 0, 0), ε) {
-        t.Error("Rotation about Z")
+        t.Error("M3 Rotation about Z(b)", v)
     }
 
     // Rotation about Y
     M = M3RotateY(ᴨ / 2)
     v = M.MulV3(i)
     if !v.Equivalent(k, ε) {
-        t.Error("Rotation about Y: ", v)
+        t.Error("M3 Rotation about Y: ", v)
     }
 
     // Rotation about X
     M = M3RotateX(-ᴨ / 2)
     v = M.MulV3(j)
     if !v.Equivalent(k, ε) {
-        t.Error("Rotation about X: ", v)
+        t.Error("M3 Rotation about X: ", v)
     }
 }
 
-func TestM4(t *testing.T) {
+func TestT3andM4(t *testing.T) {
 
-    pi := P3New(0.5, 0, 0)
-    pj := P3New(0, 0.5, 0)
-    pk := P3New(0, 0, 0.5)
+    // P3's are like V4's with w=1
+    pi, vi := P3New(0.5, 0, 0), V4New(0.5, 0, 0, 1)
+    pj, vj := P3New(0, 0.5, 0), V4New(0, 0.5, 0, 1)
+    pk, vk := P3New(0, 0, 0.5), V4New(0, 0, 0.5, 1)
 
+    // Rotation about Z
+    M, T := M4RotateZ(ᴨ/2), T3RotateZ(ᴨ/2)
+    v, p := M.MulV4(vi), T.MulP3(pi)
+    if !v.Equivalent(vj, ε) {
+        t.Error("M4 rotation about Z(a): ", v)
+    }
+    if !p.Equivalent(pj, ε) {
+        t.Error("P3 rotation about Z(b): ", p)
+    }
+    /*
+       v = M.MulV3(j)
+       if !v.Equivalent(V3New(-1, 0, 0), ε) {
+           t.Error("Rotation about Z")
+       }
+
+       // Rotation about Y
+       M = M3RotateY(ᴨ / 2)
+       v = M.MulV3(i)
+       if !v.Equivalent(k, ε) {
+           t.Error("Rotation about Y: ", v)
+       }
+
+       // Rotation about X
+       M = M3RotateX(-ᴨ / 2)
+       v = M.MulV3(j)
+       if !v.Equivalent(k, ε) {
+           t.Error("Rotation about X: ", v)
+       }
+    */
 }
