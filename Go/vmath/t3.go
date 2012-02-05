@@ -97,9 +97,9 @@ func T3RotateY(radians float32) *T3 {
     m := new(T3)
     s, c := sin(radians), cos(radians)
     m.matrix = [4 * 3]float32{
-        1, 0, 0, 
-        c, 0, -s,
-        s, 0, c,
+        c, 0, s, 
+        0, 1, 0,
+        -s, 0, c,
         0, 0, 0}
     return m
 }

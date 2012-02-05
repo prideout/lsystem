@@ -10,6 +10,7 @@ GOFILES=\
 	v3.go \
 	v4.go \
 	p3.go \
+	t3.go \
 
 include $(GOROOT)/src/Make.pkg
 

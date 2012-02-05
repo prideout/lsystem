@@ -54,6 +54,13 @@ func (p P3) Clone() P3 {
     return P3New(p.X, p.Y, p.Z)
 }
 
+func (a P3) Equivalent(b P3, ε float32) bool {
+    return true &&
+        abs(b.X-a.X) < ε &&
+        abs(b.Y-a.Y) < ε &&
+        abs(b.Z-a.Z) < ε
+}
+
 func (p P3) String() string {
     return fmt.Sprintf("(%g, %g, %g)", p.X, p.Y, p.Z)
 }

@@ -45,6 +45,14 @@ func (v V4) Length() float32 {
     return sqrt(v.Dot(v))
 }
 
+func (a V4) Equivalent(b V4, ε float32) bool {
+    return true &&
+        abs(b.X-a.X) < ε &&
+        abs(b.Y-a.Y) < ε &&
+        abs(b.Z-a.Z) < ε &&
+        abs(b.W-a.W) < ε
+}
+
 func (v V4) String() string {
     return fmt.Sprintf("(%g, %g, %g, %g)", v.X, v.Y, v.Z, v.W)
 }

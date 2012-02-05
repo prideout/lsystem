@@ -20,7 +20,7 @@ func BenchmarkVectors(b *testing.B) {
     fmt.Println("No benchmarks yet.")
 }
 
-func TestVec3(t *testing.T) {
+func TestV3andM3(t *testing.T) {
 
     i := V3New(1, 0, 0)
     j := V3New(0, 1, 0)
@@ -36,11 +36,11 @@ func TestVec3(t *testing.T) {
     M := M3RotateZ(ᴨ / 2)
     v := M.MulV3(i)
     if !v.Equivalent(j, ε) {
-        t.Error("M3 Rotation about Z(a)", v)
+        t.Error("M3 Rotation about Z", v)
     }
     v = M.MulV3(j)
     if !v.Equivalent(V3New(-1, 0, 0), ε) {
-        t.Error("M3 Rotation about Z(b)", v)
+        t.Error("M3 Rotation about Z", v)
     }
 
     // Rotation about Y
@@ -69,29 +69,41 @@ func TestT3andM4(t *testing.T) {
     M, T := M4RotateZ(ᴨ/2), T3RotateZ(ᴨ/2)
     v, p := M.MulV4(vi), T.MulP3(pi)
     if !v.Equivalent(vj, ε) {
-        t.Error("M4 rotation about Z(a): ", v)
+        t.Error("M4 rotation about Z: ", v)
     }
     if !p.Equivalent(pj, ε) {
-        t.Error("P3 rotation about Z(b): ", p)
+        t.Error("P3 rotation about Z: ", p)
     }
-    /*
-       v = M.MulV3(j)
-       if !v.Equivalent(V3New(-1, 0, 0), ε) {
-           t.Error("Rotation about Z")
-       }
+    v, p = M.MulV4(vj), T.MulP3(pj)
+    if !v.Equivalent(V4New(-0.5, 0, 0, 1), ε) {
+        t.Error("M4 rotation about Z: ", v)
+    }
+    if !p.Equivalent(P3New(-0.5, 0, 0), ε) {
+        t.Error("P4 rotation about Z: ", p)
+    }
 
-       // Rotation about Y
-       M = M3RotateY(ᴨ / 2)
-       v = M.MulV3(i)
-       if !v.Equivalent(k, ε) {
-           t.Error("Rotation about Y: ", v)
-       }
+    // Rotation about Y
+    M, T = M4RotateY(ᴨ/2), T3RotateY(ᴨ/2)
+    v, p = M.MulV4(vi), T.MulP3(pi)
+    if !v.Equivalent(vk, ε) {
+        t.Error("M4 rotation about Y: ", v)
+    }
+    if !p.Equivalent(pk, ε) {
+        t.Error("T3 rotation about Y: ", p)
+    }
 
-       // Rotation about X
-       M = M3RotateX(-ᴨ / 2)
-       v = M.MulV3(j)
-       if !v.Equivalent(k, ε) {
-           t.Error("Rotation about X: ", v)
-       }
-    */
+    // Rotation about X
+    M, T = M4RotateX(-ᴨ / 2), T3RotateY(-ᴨ / 2)
+    v, p = M.MulV4(vj), T.MulP3(pj)
+    if !v.Equivalent(vk, ε) {
+        t.Error("M4 rotation about X: ", v)
+    }
+    if !p.Equivalent(pk, ε) {
+        t.Error("T3 rotation about X: ", p)
+    }
+}
+
+// Test transforms-of-transforms
+func TestComposition(t *testing.T) {
+
 }

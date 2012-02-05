@@ -107,9 +107,9 @@ func M4RotateY(radians float32) *M4 {
     m := new(M4)
     s, c := sin(radians), cos(radians)
     m.matrix = [4 * 4]float32{
-        1, 0, 0, 0,
-        c, 0, -s, 0,
-        s, 0, c, 0,
+        c, 0, s, 0,
+        0, 1, 0, 0,
+        -s, 0, c, 0,
         0, 0, 0, 1}
     return m
 }
