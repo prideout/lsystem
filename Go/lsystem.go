@@ -134,7 +134,7 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
                 count = 1
             }
             for ; count > 0; count-- {
-                matrix = matrix.MulM4(&t)
+                matrix = t.Compose(matrix)
                 newRule := self.PickRule(call.Rule, random)
                 next := StackNode{
                     RuleIndex: newRule,
@@ -147,13 +147,11 @@ func (self *LSystem) ProcessRule(start StackNode, curve *Curve, random *rand.Ran
 
         for _, instance := range rule.Instances {
             t := self.Matrices[instance.Transforms]
-            matrix = matrix.MulM4(&t)
-            v := vmath.V4New(0, 0, 0, 1)
-            v = matrix.MulV4(v) // there's got to be something more efficient than this
-            p := vmath.P3FromV4(v)
-            fmt.Println(v, " ", p)
-            n := vmath.V3New(0, 0, 1)
-            n = matrix.GetUpperLeft().MulV3(n)
+            matrix = t.Compose(matrix)
+            v := vmath.V4{0, 0, 0, 1}
+            n := vmath.V3{0, 0, 1}
+            p := vmath.P3FromV4(matrix.Mul(v))
+            n = matrix.GetUpperLeft().Mul(n)
             c := CurvePoint{P: p, N: n}
             *curve = append(*curve, c)
             if len(*curve)%10000 == 0 {
@@ -221,41 +219,41 @@ func (cache *MatrixCache) ParseString(s string) {
             y := readFloat()
             z := readFloat()
             m := vmath.M4Scale(x, y, z)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
+        case "sa":
+            a := readFloat()
+            m := vmath.M4Scale(a, a, a)
+            xform = m.Compose(xform)
         case "t":
             x := readFloat()
             y := readFloat()
             z := readFloat()
             m := vmath.M4Translate(x, y, z)
-            xform = xform.MulM4(m)
-        case "sa":
-            a := readFloat()
-            m := vmath.M4Scale(a, a, a)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "tx":
             x := readFloat()
             m := vmath.M4Translate(x, 0, 0)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "ty":
             y := readFloat()
             m := vmath.M4Translate(0, y, 0)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "tz":
             z := readFloat()
             m := vmath.M4Translate(0, 0, z)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "rx":
             x := radians(readFloat())
             m := vmath.M4RotateX(x)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "ry":
             y := radians(readFloat())
             m := vmath.M4RotateY(y)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "rz":
             z := radians(readFloat())
             m := vmath.M4RotateZ(z)
-            xform = xform.MulM4(m)
+            xform = m.Compose(xform)
         case "":
         default:
             fmt.Println("Unknown token: ", token)

@@ -157,18 +157,16 @@ const (
 )
 
 const RIBBON string = `
-<rules max_depth="3000">
+<rules max_depth="5">
     <rule name="entry">
-    <call count="10" transforms="rz 36" rule="hbox"/>
+        <call count="5" transforms="rz 72" rule="turn3"/>
     </rule>
-    <rule name="hbox"><call rule="r"/></rule>
-    <rule name="r"><call rule="turn3"/></rule>
-    <rule name="turn3" max_depth="90" successor="r">
-    <call rule="dbox"/>
-    <call transforms="ry -0.5 tx 0.0125 sa 0.996" rule="turn3"/>
+    <rule name="turn3">
+        <call rule="dbox"/>
+        <call transforms="ry -3.5 tx 0.5" rule="turn3"/>
     </rule>
     <rule name="dbox">
-    <instance transforms="s 0.55 2.0 1.25" shape="curve"/>
+        <instance shape="curve"/>
     </rule>
-</rules>    
+</rules>
 `
