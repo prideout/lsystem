@@ -1,0 +1,13 @@
+<rules max_depth="25">
+    <rule name="entry">
+        <call count="5" transforms="rz 72" rule="turn3"/>
+    </rule>
+    <rule name="turn3">
+        <call rule="dbox"/>
+        <call transforms="ry -7 tx 0.1" rule="turn3"/>
+    </rule>
+    <rule name="dbox">
+        <instance shape="curve"/>
+    </rule>
+</rules>
+

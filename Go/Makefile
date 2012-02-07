@@ -2,7 +2,7 @@ curve: curve.go lsystem.go stack.go
 	make -f Makefile.curve
 
 image: curve
-	./curve
+	./curve Ribbon.xml single render
 
 torus: torus.go
 	make -f Makefile.torus

@@ -4,6 +4,7 @@ import (
     "bufio"
     "fmt"
     "os"
+    "io/ioutil"
     "os/exec"
     ri "rman"
     "strings"
@@ -83,7 +84,7 @@ func drawWorld(curve *Curve) {
         "samples", 64.)
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
-    //   ri.Disk(-0.7, 300, 360)
+    ri.Disk(-0.7, 300, 360)
     ri.TransformEnd()
 
     // Sculpture
@@ -100,14 +101,57 @@ func drawWorld(curve *Curve) {
     ri.WorldEnd()
 }
 
+func usage() {
+    fmt.Println("Usage: lsystem [file.xml] [single|multi] [render|ribgen|lsys]")
+    os.Exit(1)
+}
+
 func main() {
-    xml := strings.NewReader(RIBBON)
+        
+    args := os.Args[1:]
+    if len(args) != 3 {
+        usage()
+    }
+    filename, threading, mode := args[0], args[1], args[2]
+
+    var isThreading bool
+    switch threading {
+    case "single":
+        isThreading = false
+    case "multi":
+        isThreading = true
+    default:
+        usage()
+    }
+    _ = isThreading // ignore for now
+
+    var isSilent bool = false
+    var isRendering bool
+    switch mode {
+    case "render":
+        isRendering = true
+    case "ribgen":
+        isRendering = false
+    case "lsys":
+        isSilent = true
+    }
+
+    contents, _ := ioutil.ReadFile(filename)
+    xml := strings.NewReader(string(contents))
     curve := Evaluate(xml)
+
+    if isSilent {
+        return
+    }
 
     compileShader("Occlusion")
     compileShader("Vignette")
 
-    launch := "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib"
+    launch := ""
+    if isRendering {
+        launch = "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib"
+    }
+
     ri.Begin(launch)
     ri.Format(512, 320, 1)
     ri.Display("grasshopper", "framebuffer", "rgba")
@@ -155,18 +199,3 @@ const (
     ANSI_WHITE   string = "\x1b[1;37m"
     ANSI_RESET   string = "\x1b[0m"
 )
-
-const RIBBON string = `
-<rules max_depth="5">
-    <rule name="entry">
-        <call count="5" transforms="rz 72" rule="turn3"/>
-    </rule>
-    <rule name="turn3">
-        <call rule="dbox"/>
-        <call transforms="ry -3.5 tx 0.5" rule="turn3"/>
-    </rule>
-    <rule name="dbox">
-        <instance shape="curve"/>
-    </rule>
-</rules>
-`
