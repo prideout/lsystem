@@ -157,14 +157,46 @@ _InitCamera()
     RiImager("Vignette", RI_NULL);
 }
 
+static void
+usage()
+{
+  std::cout << "Usage: lsystem [file.xml] [single|multi] [render|ribgen]" << std::endl;
+}
+
 int
 main(int argc, char** argv)
 {
-    bool isThreading = (argc == 1);
+    if (argc != 4) {
+        usage();
+        return 1;
+    }
+
+    std::string filename ( argv[1] );
+    std::string threading ( argv[2] );
+    std::string mode ( argv[3] );
+
+    bool isThreading;
+    if (threading == "single") {
+        isThreading = false;
+    } else if (threading == "multi") {
+        isThreading = true;
+    } else {
+        usage();
+    }
+
+    bool isRendering;
+    if (mode == "render") {
+        isRendering = true;
+    } else if (mode == "ribgen") {
+        isRendering = false;
+    } else {
+        usage();
+    }
+
     diag::PrintColor(diag::RED, "Evaluating %s L-System...",
                      isThreading ? "multithreaded" : "single-threaded");
     lsystem ribbon(isThreading);
-    ribbon.Evaluate("Ribbon.xml");
+    ribbon.Evaluate(filename.c_str());
     std::cout << "Success!\n";
 
     diag::PrintColor(diag::RED, "Compiling shaders...");
@@ -174,7 +206,7 @@ main(int argc, char** argv)
     diag::PrintColor(diag::RED, "Rendering...");
     RtContextHandle ri = RiGetContext();
     char* launch = "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib";
-    RiBegin(HaveLicense ? launch : 0);
+    RiBegin((HaveLicense && isRendering) ? launch : 0);
     RuOptioni("statistics", "endofframe", RI_TRUE);
     RuOptiont("statistics", "xmlfilename", "stats.xml");
     RiFormat(1024, 640, 1.0f);

@@ -32,7 +32,7 @@ rmantree = os.environ["RMANTREE"]
 rmaninc = os.path.join(rmantree, "include")
 rmanlib = os.path.join(rmantree, "lib")
 
-env.Program('Ribbon', source, LIBS = libs, LINKFLAGS = '-Xlinker -rpath ' + rmanlib)
+env.Program('lsystem', source, LIBS = libs, LINKFLAGS = '-Xlinker -rpath ' + rmanlib)
 env.Append(CPPPATH = ['.', rmaninc])
 env.Append(LIBPATH = rmanlib)
 env.Append(RPATH = rmanlib)
