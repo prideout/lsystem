@@ -135,6 +135,10 @@ func Format(width int32, height int32, aspectRatio float32) {
 }
 
 func Begin(name string) {
+    if name == "" {
+        C.RiBegin(nil)
+        return
+    }
     pName := C.CString(name)
     defer C.free(unsafe.Pointer(pName))
     C.RiBegin(pName)

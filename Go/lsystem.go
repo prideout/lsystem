@@ -244,15 +244,15 @@ func (cache *MatrixCache) ParseString(s string) {
             xform = m.Compose(xform)
         case "rx":
             x := radians(readFloat())
-            m := vmath.M4RotateX(x)
+            m := vmath.M4RotateX(-x)
             xform = m.Compose(xform)
         case "ry":
             y := radians(readFloat())
-            m := vmath.M4RotateY(y)
+            m := vmath.M4RotateY(-y)
             xform = m.Compose(xform)
         case "rz":
             z := radians(readFloat())
-            m := vmath.M4RotateZ(z)
+            m := vmath.M4RotateZ(-z)
             xform = m.Compose(xform)
         case "":
         default:

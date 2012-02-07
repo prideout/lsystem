@@ -56,7 +56,7 @@ func drawCurve(curve *Curve) {
     }
 
     // Submit the gprim to prman:
-    var curveWidth float32 = 0.025
+    var curveWidth float32 = 0.25
     ri.Curves("linear", vertsPerCurve, "nonperiodic",
         "P", points,
         "N", normals,
@@ -81,7 +81,7 @@ func drawWorld(curve *Curve) {
     ri.Attribute("identifier", "string name", "Floor")
     ri.Surface("Occlusion",
         "em", color(0, 0.65, 0.83),
-        "samples", 64.)
+        "samples", 512.)
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
     ri.Disk(-0.7, 300, 360)
@@ -91,7 +91,7 @@ func drawWorld(curve *Curve) {
     ri.Attribute("identifier", "string name", "Sculpture")
     ri.Surface("Occlusion",
         "em", gray(1.1),
-        "samples", 64.)
+        "samples", 512.)
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
     ri.Translate(0, 0, -0.55)
@@ -147,15 +147,17 @@ func main() {
     compileShader("Occlusion")
     compileShader("Vignette")
 
-    launch := ""
+    var launch string
     if isRendering {
         launch = "launch:prman? -t -ctrl $ctrlin $ctrlout -capture debug.rib"
+    } else {
+        launch = ""
     }
 
     ri.Begin(launch)
     ri.Format(512, 320, 1)
     ri.Display("grasshopper", "framebuffer", "rgba")
-    ri.ShadingRate(4)
+    ri.ShadingRate(2)
     ri.Option("limits", "int threads", 2)
     ri.Option("statistics",
         "xmlfilename", "stats.xml",
