@@ -142,11 +142,11 @@ static pugi::xml_node _PickRule(const pugi::xml_document& doc, const char* name,
 void _ProcessRule(void* arg)
 {
     lsystem::ThreadInfo* info = reinterpret_cast<lsystem::ThreadInfo*>(arg);
-    info->Self->_ProcessRule(info->Entry, &info->Result, info->Seed);
+    info->Self->_ProcessRule(info->Entry, &info->Result, info->Seed, info->StackOffset);
 }
 
 void lsystem::_ProcessRule(const StackEntry& entry, Curve* result,
-                           unsigned int seed)
+                           unsigned int seed, unsigned int stackOffset)
 {
     {
         lock_guard<mutex> guard(_mutexCompute);
@@ -171,7 +171,7 @@ void lsystem::_ProcessRule(const StackEntry& entry, Curve* result,
         }
         
         // Mark the end of the ribbon due to global depth constraint
-        if (stack.size() >= _maxDepth) {
+        if (stack.size() + stackOffset >= _maxDepth) {
             result->push_back(0);
             continue;
         }
@@ -273,7 +273,7 @@ void lsystem::Evaluate(const char* filename, unsigned int seed)
         std::vector<ThreadInfo> curves(count); // TODO remove this by deriving a new class from tthread::thread
         std::vector<ThreadInfo>::iterator pCurve = curves.begin();
         Matrix4 matrix = entry.Transform;
-        
+
         while (count--) {
             matrix *= xform;
             ThreadInfo& curve = *pCurve++;
@@ -282,6 +282,7 @@ void lsystem::Evaluate(const char* filename, unsigned int seed)
             curve.Entry = newEntry;
             curve.Self = this;
             curve.Seed = seed;
+            curve.StackOffset = count;
             threads.push_back(new thread(::_ProcessRule, &curve));
         }
         
@@ -300,7 +301,7 @@ void lsystem::Evaluate(const char* filename, unsigned int seed)
         }
 
     } else {
-        this->_ProcessRule(entry, &_curve, seed);
+        this->_ProcessRule(entry, &_curve, seed, 0);
     }
     
     diag::Print("%d total curve segments.\n", _curveLength);

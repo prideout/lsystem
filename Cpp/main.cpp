@@ -160,7 +160,8 @@ _InitCamera()
 static void
 usage()
 {
-  std::cout << "Usage: lsystem [file.xml] [single|multi] [render|ribgen]" << std::endl;
+  std::cout << "Usage: lsystem [file.xml] [single|multi] [render|ribgen|lsys]" << std::endl;
+  exit(1);
 }
 
 int
@@ -168,7 +169,6 @@ main(int argc, char** argv)
 {
     if (argc != 4) {
         usage();
-        return 1;
     }
 
     std::string filename ( argv[1] );
@@ -185,10 +185,13 @@ main(int argc, char** argv)
     }
 
     bool isRendering;
+    bool isSilent = false;
     if (mode == "render") {
         isRendering = true;
     } else if (mode == "ribgen") {
         isRendering = false;
+    } else if (mode == "lsys") {
+        isSilent = true;
     } else {
         usage();
     }
@@ -198,6 +201,9 @@ main(int argc, char** argv)
     lsystem ribbon(isThreading);
     ribbon.Evaluate(filename.c_str());
     std::cout << "Success!\n";
+    if (isSilent) {
+        return 0;
+    }
 
     diag::PrintColor(diag::RED, "Compiling shaders...");
     _CompileShader("Vignette");

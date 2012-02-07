@@ -1,4 +1,4 @@
-<rules max_depth="5">
+<rules max_depth="6">
     <rule name="entry">
         <call count="5" transforms="rz 72" rule="turn3"/>
     </rule>

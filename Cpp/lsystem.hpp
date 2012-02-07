@@ -38,10 +38,11 @@ private:
         Curve Result;
         lsystem* Self;
         unsigned int Seed;
+        unsigned int StackOffset;
     };
     
     friend void _ProcessRule(void* arg);
-    void _ProcessRule(const StackEntry& entry, Curve* result, unsigned int seed);
+    void _ProcessRule(const StackEntry& entry, Curve* result, unsigned int seed, unsigned int stackOffset);
 
     pugi::xml_document _doc;
     Curve _curve;
