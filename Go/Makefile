@@ -4,6 +4,12 @@ curve: curve.go lsystem.go stack.go
 image: curve
 	./curve Ribbon.xml single render
 
+rib: curve
+	./curve Ribbon.xml single ribgen
+
+lsys: curve
+	./curve Ribbon.xml single lsys
+
 torus: torus.go
 	make -f Makefile.torus
 
