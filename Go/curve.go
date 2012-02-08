@@ -12,7 +12,7 @@ import (
 
 func initCamera() {
     ri.Projection("perspective", "fov", 30.)
-    ri.Translate(0, -0.25, 5)
+    ri.Translate(0, -0.25, 10)
     ri.Rotate(-20, 1, 0, 0)
     ri.Rotate(180, 1, 0, 0)
     ri.Imager("Vignette")
@@ -56,7 +56,7 @@ func drawCurve(curve *Curve) {
     }
 
     // Submit the gprim to prman:
-    var curveWidth float32 = 0.25
+    var curveWidth float32 = 0.05
     ri.Curves("linear", vertsPerCurve, "nonperiodic",
         "P", points,
         "N", normals,
@@ -155,7 +155,7 @@ func main() {
     }
 
     ri.Begin(launch)
-    ri.Format(512, 320, 1)
+    ri.Format(512*2, 320*2, 1)
     ri.Display("grasshopper", "framebuffer", "rgba")
     ri.ShadingRate(2)
     ri.Option("limits", "int threads", 2)
