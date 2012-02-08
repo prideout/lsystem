@@ -67,7 +67,7 @@ _DrawCurves(const lsystem& ribbon)
         total, points.size() / 3);
 
     RtInt ncurves = RtInt(vertsPerCurve.size());
-    float curveWidth = 0.05f;
+    float curveWidth = 0.1f;
     RiCurves("linear", ncurves, &vertsPerCurve[0],
         "nonperiodic",
         RI_P, &points[0],
@@ -94,7 +94,7 @@ _DrawWorld(const lsystem& ribbon)
     // Create a list of common shader parameters:
     RuMap args;
     args["displaychannels"] = "_occlusion";
-    args["samples"] = 128.0f;
+    args["samples"] = 256.0f;
     args["filename"] = "";
 
     // Insert the floor, which fills the background:
@@ -151,9 +151,10 @@ _InitCamera()
 {
     float fov = 30.0f;
     RiProjection("perspective", RI_FOV, &fov, RI_NULL);
-    RiTranslate(0, -0.25, 5);
-    RiRotate(-20, 1, 0, 0);
+    RiTranslate(0, -0.25, 8);
+    RiRotate(-40, 1, 0, 0);
     RiRotate(180, 1, 0, 0);
+    RiTranslate(0, -1, 0);
     RiImager("Vignette", RI_NULL);
 }
 
