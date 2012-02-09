@@ -1,7 +1,7 @@
 ##RenderMan RIB
 version 3.04
 Format 960 400 1
-Display "debug.tif" "file" "rgba" 
+Display "archive.png" "file" "rgba" 
 ShadingRate 1
 Option "limits" "int threads" [2]
 Option "statistics" "xmlfilename" ["stats.xml"] "endofframe" [1]
@@ -18,7 +18,7 @@ Attribute "cull" "int backfacing" [0] "int hidden" [0]
 Attribute "visibility" "int diffuse" [1] "int specular" [1]
 Attribute "dice" "int rasterorient" [0]
 Attribute "identifier" "string name" ["Floor"]
-Surface "Occlusion" "em" [0.12 0.12 0.83] "samples" [16]
+Surface "Occlusion" "em" [0.2 0.5 0.8] "samples" [1024]
 TransformBegin 
 Rotate 90 1 0 0
 Disk -0.7 300 360 
