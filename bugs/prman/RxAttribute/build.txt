@@ -1,6 +1,0 @@
-g++ -fpic -c GetColorAttr.cpp -I $RMANTREE/include
-g++ -shared -o GetColorAttr.so GetColorAttr.o
-nshader ComputeOcclusion.sl
-nshader Vignette.sl
-prman -t Good.rib
-prman -t Bad.rib
