@@ -80,8 +80,8 @@ func drawWorld(curve *Curve) {
     // Floor
     ri.Attribute("identifier", "string name", "Floor")
     ri.Surface("Occlusion",
-        "em", color(0, 0.65, 0.83),
-        "samples", 512.)
+        "em", color(0.12, 0.12, 0.83),
+        "samples", 16.)
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
     ri.Disk(-0.7, 300, 360)
@@ -90,8 +90,8 @@ func drawWorld(curve *Curve) {
     // Sculpture
     ri.Attribute("identifier", "string name", "Sculpture")
     ri.Surface("Occlusion",
-        "em", gray(1.1),
-        "samples", 512.)
+        "em", gray(1.0),
+        "samples", 1024.)
     ri.TransformBegin()
     ri.Rotate(90, 1, 0, 0)
     ri.Translate(0, 0, -0.55)
@@ -155,9 +155,9 @@ func main() {
     }
 
     ri.Begin(launch)
-    ri.Format(512*2, 320*2, 1)
+    ri.Format(1920/2, 800/2, 1)
     ri.Display("grasshopper", "framebuffer", "rgba")
-    ri.ShadingRate(2)
+    ri.ShadingRate(1)
     ri.Option("limits", "int threads", 2)
     ri.Option("statistics",
         "xmlfilename", "stats.xml",
@@ -183,7 +183,7 @@ func compileShader(name string) {
 }
 
 func color(r, g, b float32) [3]float32 {
-    return [3]float32{r, b, g}
+    return [3]float32{r, g, b}
 }
 
 func gray(x float32) [3]float32 {
