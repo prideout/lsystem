@@ -5,6 +5,7 @@ import (
     "encoding/xml"
     "fmt"
     "io"
+    "io/ioutil"
     "math/rand"
     "strconv"
     "strings"
@@ -23,7 +24,10 @@ func Evaluate(stream io.Reader) Curve {
 
     var curve Curve
     var lsys LSystem
-    if err := xml.Unmarshal(stream, &lsys); err != nil {
+
+	bytes, _ := ioutil.ReadAll(stream)
+
+    if err := xml.Unmarshal(bytes, &lsys); err != nil {
         fmt.Println("Error parsing XML file:", err)
         return curve
     }
